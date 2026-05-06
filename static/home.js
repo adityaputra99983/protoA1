@@ -23,6 +23,7 @@
             dot.style.cursor = 'pointer';
             dot.addEventListener('click', function(e) {
                 e.preventDefault();
+                e.stopPropagation();
                 var slideIndex = parseInt(this.getAttribute('data-slide'), 10);
                 if (!isNaN(slideIndex)) {
                     window.changeSlide(slideIndex);

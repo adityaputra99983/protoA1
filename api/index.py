@@ -8,30 +8,39 @@ sys.path.insert(0, BASE_DIR)
 # Set settings module
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tatoo.settings')
 
-# Direct import and assignment at top level for Vercel
+# Import Django
 from django.core.wsgi import get_wsgi_application
+from django.core.management import call_command
+from django.db import connection
 
-# Initialize application
-try:
-    application = get_wsgi_application()
-    
-    # Run migrations once on start
-    from django.db import connection
-    from django.core.management import call_command
-    tables = connection.introspection.table_names()
-    if 'tedapp_artist' not in tables:
-        call_command('migrate', interactive=False)
-        try:
-            call_command('add_sample_data', interactive=False)
-        except:
-            pass
-except Exception as e:
-    print(f"Django startup error: {e}")
-    # Define a fallback if Django fails to load
-    def application(environ, start_response):
-        start_response('500 Internal Server Error', [('Content-type', 'text/plain')])
-        return [f"Error: {e}".encode('utf-8')]
+# Initialize WSGI application
+application = get_wsgi_application()
 
-# Vercel looks for 'app' or 'application' or 'handler'
+def run_setup():
+    """Ensure database is ready and has sample data."""
+    try:
+        # Get list of tables
+        tables = connection.introspection.table_names()
+        
+        # If the main table doesn't exist, we need to migrate
+        if 'tedapp_artist' not in tables:
+            print("System: Tables not found. Running migrations...")
+            call_command('migrate', interactive=False)
+            
+            # Load sample data if migration was performed
+            try:
+                print("System: Loading sample data...")
+                call_command('add_sample_data', interactive=False)
+            except Exception as e:
+                print(f"System: Error loading data: {e}")
+        else:
+            print("System: Database already setup.")
+    except Exception as e:
+        print(f"System: Setup failed: {e}")
+
+# Run setup during cold start
+run_setup()
+
+# Define the app entry point
 app = application
 handler = application

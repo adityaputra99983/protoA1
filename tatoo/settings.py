@@ -71,7 +71,7 @@ if os.environ.get('DATABASE_URL'):
     DATABASES = {
         'default': dj_database_url.parse(os.environ.get('DATABASE_URL'))
     }
-elif os.environ.get('VERCEL'):
+elif os.environ.get('VERCEL') or os.environ.get('VERCEL_URL'):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',

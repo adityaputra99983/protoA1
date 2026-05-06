@@ -56,7 +56,7 @@
                     <i class="bi bi-brush"></i> TED
                 </a>
             </div>
-            <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+            <button class="mobile-menu-toggle" id="mobileMenuBtn">
                 <span></span>
                 <span></span>
                 <span></span>
@@ -124,7 +124,7 @@
     </div>
 
     <!-- Mobile Overlay -->
-    <div class="mobile-overlay" id="mobileOverlay" onclick="closeMobileMenu()"></div>
+    <div class="mobile-overlay" id="mobileOverlay"></div>
 
     {% if messages %}
     <div class="container mt-3">
@@ -164,6 +164,24 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        function toggleMobileMenu() {
+            document.getElementById('mobileSlideMenu').classList.toggle('active');
+            document.getElementById('mobileOverlay').classList.toggle('active');
+            document.getElementById('mobileMenuBtn').classList.toggle('active');
+        }
+
+        function closeMobileMenu() {
+            document.getElementById('mobileSlideMenu').classList.remove('active');
+            document.getElementById('mobileOverlay').classList.remove('active');
+            document.getElementById('mobileMenuBtn').classList.remove('active');
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('mobileMenuBtn').addEventListener('click', toggleMobileMenu);
+            document.getElementById('mobileOverlay').addEventListener('click', closeMobileMenu);
+        });
+    </script>
     <script src="{% static 'base.js' %}"></script>
     {% block extra_js %}{% endblock %}
 </body>

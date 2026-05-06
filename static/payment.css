@@ -1,0 +1,18 @@
+@media (max-width: 768px) {
+    .payment-option { min-width: 100px; padding: 10px !important; }
+    .payment-option .fs-4 { font-size: 1.5rem !important; }
+    .payment-option h6 { font-size: 0.85rem; }
+    .btn-pay { padding: 0.8rem 1.5rem; font-size: 1rem; }
+}
+.payment-option.selected {
+    border: 2px solid #a855f7 !important;
+    background: rgba(168, 85, 247, 0.1) !important;
+}
+#paymentDetails.show {
+    display: block !important;
+    animation: fadeIn 0.3s ease-in-out;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

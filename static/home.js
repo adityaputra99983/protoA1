@@ -11,12 +11,24 @@
         if (slides.length === 0) return;
         
         window.changeSlide = function(index) {
+            if (index < 0 || index >= slides.length) return;
             slides.forEach(function(s) { s.classList.remove('active'); });
             dots.forEach(function(d) { d.classList.remove('active'); });
             slides[index].classList.add('active');
             dots[index].classList.add('active');
             currentSlide = index;
         };
+        
+        dots.forEach(function(dot) {
+            dot.style.cursor = 'pointer';
+            dot.addEventListener('click', function(e) {
+                e.preventDefault();
+                var slideIndex = parseInt(this.getAttribute('data-slide'), 10);
+                if (!isNaN(slideIndex)) {
+                    window.changeSlide(slideIndex);
+                }
+            });
+        });
         
         if (slides.length > 1) {
             setInterval(function() {
@@ -28,6 +40,7 @@
 
     function initCategoryChips() {
         document.querySelectorAll('.category-chip').forEach(function(chip) {
+            chip.style.cursor = 'pointer';
             chip.addEventListener('click', function() {
                 document.querySelectorAll('.category-chip').forEach(function(c) {
                     c.classList.remove('active');

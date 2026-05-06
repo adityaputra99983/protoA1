@@ -166,20 +166,32 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         function toggleMobileMenu() {
-            document.getElementById('mobileSlideMenu').classList.toggle('active');
-            document.getElementById('mobileOverlay').classList.toggle('active');
-            document.getElementById('mobileMenuBtn').classList.toggle('active');
+            var menu = document.getElementById('mobileSlideMenu');
+            var overlay = document.getElementById('mobileOverlay');
+            var btn = document.getElementById('mobileMenuBtn');
+            if (menu && overlay && btn) {
+                menu.classList.toggle('active');
+                overlay.classList.toggle('active');
+                btn.classList.toggle('active');
+            }
         }
 
         function closeMobileMenu() {
-            document.getElementById('mobileSlideMenu').classList.remove('active');
-            document.getElementById('mobileOverlay').classList.remove('active');
-            document.getElementById('mobileMenuBtn').classList.remove('active');
+            var menu = document.getElementById('mobileSlideMenu');
+            var overlay = document.getElementById('mobileOverlay');
+            var btn = document.getElementById('mobileMenuBtn');
+            if (menu && overlay && btn) {
+                menu.classList.remove('active');
+                overlay.classList.remove('active');
+                btn.classList.remove('active');
+            }
         }
         
         document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('mobileMenuBtn').addEventListener('click', toggleMobileMenu);
-            document.getElementById('mobileOverlay').addEventListener('click', closeMobileMenu);
+            var menuBtn = document.getElementById('mobileMenuBtn');
+            var overlay = document.getElementById('mobileOverlay');
+            if (menuBtn) menuBtn.addEventListener('click', toggleMobileMenu);
+            if (overlay) overlay.addEventListener('click', closeMobileMenu);
         });
     </script>
     <script src="{% static 'base.js' %}"></script>

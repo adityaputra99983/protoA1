@@ -197,7 +197,7 @@ def payment(request, booking_id):
             f"Layanan: {booking.service.name}\n"
             f"Artist: {booking.artist.name}\n"
             f"Total: Rp {int(booking.total_price):,}\n"
-            f"Metode: {booking.get_payment_method_display}\n"
+            f"Metode: {booking.get_payment_method_display()}\n"
             f"Jadwal: {booking.booking_date} {booking.booking_time}"
         ).replace(',', '.')
         
@@ -214,7 +214,7 @@ def payment(request, booking_id):
                 f"User: {booking.user.username}\n"
                 f"Layanan: {booking.service.name}\n"
                 f"Total: Rp {int(booking.total_price):,}\n"
-                f"Metode: {booking.get_payment_method_display}\n"
+                f"Metode: {booking.get_payment_method_display()}\n"
                 f"Jadwal: {booking.booking_date} {booking.booking_time}"
             ).replace(',', '.')
             
@@ -327,7 +327,7 @@ def invoice_pdf(request, booking_id):
     
     p.setFont("Helvetica", 6)
     p.setFillColor(colors.gray)
-    p.drawCentredString(40*mm, y_pos*mm, str(booking.get_payment_method_display))
+    p.drawCentredString(40*mm, y_pos*mm, str(booking.get_payment_method_display()))
     y_pos -= 8
     
     p.line(8*mm, y_pos*mm, 72*mm, y_pos*mm)
@@ -1309,7 +1309,7 @@ def chat_view(request, booking_id):
     
     context = {
         'booking': booking,
-        'messages': messages_list,
+        'chat_messages': messages_list,
         'other_user': other_user,
         'other_name': other_name,
         'is_artist_chat': is_artist,

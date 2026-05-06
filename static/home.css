@@ -273,18 +273,36 @@
 
 /* Mobile Small (< 400px) */
 @media (max-width: 399px) {
-    .promo-carousel { border-radius: 10px; }
-    .promo-slide > div { padding: 12px !important; }
+    html, body {
+        overflow-x: hidden;
+        max-width: 100vw;
+        width: 100%;
+    }
+    .promo-carousel { 
+        border-radius: 10px; 
+        max-width: 100%;
+        overflow: hidden;
+    }
+    .promo-slide { 
+        max-width: 100%;
+        overflow: hidden;
+    }
+    .promo-slide > div { padding: 12px !important; box-sizing: border-box; }
     .promo-slide h4 { font-size: 0.95rem !important; }
     .promo-slide p { font-size: 0.75rem !important; }
     .promo-slide small { font-size: 0.65rem !important; }
     .promo-dot { width: 6px; height: 6px; }
+    .category-scroll { 
+        overflow-x: auto; 
+        -webkit-overflow-scrolling: touch;
+    }
     .category-chip { padding: 6px 10px; font-size: 0.7rem; }
     .nearby-image { height: 80px; }
     .nearby-info { padding: 8px; }
     .nearby-info h6 { font-size: 0.85rem; }
     .nearby-info small { font-size: 0.7rem; }
     .card-ted.p-3 { padding: 10px !important; }
+    .map-container { max-width: 100%; }
     .map-container #map { height: 180px; }
     .badge-ted { font-size: 0.6rem; padding: 0.2rem 0.4rem; }
     .btn-ted-primary { padding: 0.6rem 1rem; font-size: 0.85rem; }

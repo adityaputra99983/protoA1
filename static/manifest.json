@@ -1,0 +1,20 @@
+{
+  "name": "TED - Tattoo on Demand",
+  "short_name": "TED",
+  "description": "Aplikasi pemesanan seniman tattoo - panggil ke rumah atau kunjungi studio",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F0523",
+  "theme_color": "#6B21A8",
+  "orientation": "portrait",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/static/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    }
+  ],
+  "categories": ["lifestyle", "shopping"]
+}

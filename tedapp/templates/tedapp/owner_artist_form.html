@@ -1,0 +1,459 @@
+{% extends 'tedapp/owner_base.html' %}
+{% load static %}
+
+{% block page_title %}{% if artist %}Edit Artist{% else %}Tambah Artist{% endif %}{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+    <a href="{% url 'owner_artists' %}" class="btn btn-secondary me-3">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <h3 class="text-white mb-0">
+        {% if artist %}<i class="bi bi-pencil"></i> Edit Artist{% else %}<i class="bi bi-person-plus"></i> Tambah Artist{% endif %}
+    </h3>
+</div>
+
+<div class="card border-0 mb-4" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 15px;">
+    <div class="card-body">
+        <form method="POST" id="artistForm">
+            {% csrf_token %}
+            
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="text-white mb-0" style="color: #a855f7 !important;"><i class="bi bi-geo-alt"></i> Set Lokasi</h5>
+                <span id="locationStatus" class="badge" style="font-size: 0.85rem;">
+                    <i class="bi bi-exclamation-circle"></i> Lokasi belum di-set
+                </span>
+            </div>
+            <div class="row">
+                <div class="col-md-8 mb-3">
+                    <label class="form-label text-white">Cari Alamat</label>
+                    <div class="input-group">
+                        <input type="text" id="searchAddress" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;" placeholder="Ketik alamat atau nama tempat...">
+                        <button type="button" class="btn btn-primary" style="background: #a855f7; border: none;" onclick="searchLocation()">
+                            <i class="bi bi-search"></i> Cari
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3 d-flex align-items-end">
+                    <button type="button" class="btn btn-outline-light w-100" onclick="getCurrentLocation()">
+                        <i class="bi bi-crosshair"></i> Lokasi Saya
+                    </button>
+                </div>
+            </div>
+            <div id="locationMap" style="height: 300px; border-radius: 10px; margin-bottom: 1rem;"></div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-white">Latitude</label>
+                    <div class="input-group">
+                        <input type="text" name="latitude" id="latInput" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;" value="{% if artist.latitude %}{{ artist.latitude|stringformat:'f' }}{% endif %}" placeholder="Klik peta atau cari alamat">
+                        <span class="input-group-text" style="background: #0f0f23; border: 1px solid #333; color: #fff;">
+                            <i id="latIcon" class="bi bi-x-circle" style="color: #f87171;"></i>
+                        </span>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-white">Longitude</label>
+                    <div class="input-group">
+                        <input type="text" name="longitude" id="lngInput" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;" value="{% if artist.longitude %}{{ artist.longitude|stringformat:'f' }}{% endif %}" placeholder="Klik peta atau cari alamat">
+                        <span class="input-group-text" style="background: #0f0f23; border: 1px solid #333; color: #fff;">
+                            <i id="lngIcon" class="bi bi-x-circle" style="color: #f87171;"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div id="locationSavedAlert" class="alert alert-success py-2 mb-2" style="display: none;">
+                <i class="bi bi-check-circle"></i> <strong>Lokasi tersimpan!</strong> Koordinat sudah siap disimpan saat form disubmit.
+            </div>
+            <small style="color: #a0a0a0;"><i class="bi bi-info-circle"></i> Klik pada peta untuk menentukan lokasi, atau gunakan fitur pencarian alamat. Lokasi akan otomatis terisi dan disimpan saat form dikirim.</small>
+            
+            {% if not artist %}
+            <h5 class="text-white mb-3" style="color: #a855f7 !important;"><i class="bi bi-key"></i> Akun Login</h5>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label text-white">Username</label>
+                    <input type="text" name="username" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;" required>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label text-white">Password</label>
+                    <input type="text" name="password" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;" value="password123">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label text-white">Email Akun</label>
+                    <input type="email" name="email" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;">
+                </div>
+            </div>
+            {% endif %}
+            
+            <h5 class="text-white mb-3" style="color: #a855f7 !important;"><i class="bi bi-person"></i> Data Artist</h5>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-white">Nama Lengkap</label>
+                    <input type="text" name="name" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;" value="{{ artist.name|default:'' }}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-white">Nickname</label>
+                    <input type="text" name="nickname" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;" value="{{ artist.nickname|default:'' }}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-white">No. HP</label>
+                    <input type="text" name="phone" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;" value="{{ artist.phone|default:'' }}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-white">Email Artist</label>
+                    <input type="email" name="artist_email" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;" value="{{ artist.email|default:'' }}" placeholder="email@contoh.com">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-white">Kota</label>
+                    <input type="text" name="city" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;" value="{{ artist.city|default:'' }}" required>
+                </div>
+                <div class="col-12 mb-3">
+                    <label class="form-label text-white">Alamat</label>
+                    <textarea name="address" id="addressInput" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;" rows="2" required>{{ artist.address|default:'' }}</textarea>
+                </div>
+                <div class="col-12 mb-3">
+                    <label class="form-label text-white">Deskripsi</label>
+                    <textarea name="description" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;" rows="3">{{ artist.description|default:'' }}</textarea>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-white">Spesialisasi</label>
+                    <input type="text" name="specializations" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;" placeholder="Realistic, Blackwork, Japanese..." value="{{ artist.specializations|default:'' }}">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-white">Tahun Pengalaman</label>
+                    <input type="number" name="experience_years" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;" value="{{ artist.experience_years|default:0 }}">
+                </div>
+            </div>
+            
+            <h5 class="text-white mb-3" style="color: #a855f7 !important;"><i class="bi bi-house"></i> Layanan</h5>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="is_available_home" id="homeChk" {% if artist.is_available_home or not artist %}checked{% endif %}>
+                        <label class="form-check-label text-white" for="homeChk">Layanan ke Rumah</label>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="is_available_studio" id="studioChk" {% if artist.is_available_studio or not artist %}checked{% endif %}>
+                        <label class="form-check-label text-white" for="studioChk">Layanan ke Studio</label>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label text-white">Biaya Home Service</label>
+                    <input type="number" name="home_service_fee" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;" value="{{ artist.home_service_fee|default:0 }}">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-white">Nama Studio</label>
+                    <input type="text" name="studio_name" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;" value="{{ artist.studio_name|default:'' }}">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-white">Alamat Studio</label>
+                    <input type="text" name="studio_address" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;" value="{{ artist.studio_address|default:'' }}">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-white">Radius Layanan (km)</label>
+                    <input type="number" name="service_radius_km" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;" value="{{ artist.service_radius_km|default:20 }}">
+                </div>
+            </div>
+            
+            <h5 class="text-white mb-3" style="color: #a855f7 !important;"><i class="bi bi-tags"></i> Layanan & Harga</h5>
+            <div id="servicesContainer">
+                {% for service in artist.services.all %}
+                <div class="row mb-2 service-item">
+                    <input type="hidden" name="service_id" value="{{ service.id }}">
+                    <div class="col-md-3">
+                        <select name="service_type" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;">
+                            <option value="tattoo" {% if service.service_type == 'tattoo' %}selected{% endif %}>Tattoo</option>
+                            <option value="piercing" {% if service.service_type == 'piercing' %}selected{% endif %}>Piercing</option>
+                            <option value="touchup" {% if service.service_type == 'touchup' %}selected{% endif %}>Touch Up</option>
+                            <option value="removal" {% if service.service_type == 'removal' %}selected{% endif %}>Removal</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" name="service_name" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;" placeholder="Nama Layanan" value="{{ service.name }}">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="number" name="service_price_min" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;" placeholder="Min" value="{{ service.price_min }}">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="number" name="service_price_max" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;" placeholder="Max" value="{{ service.price_max }}">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-danger w-100" onclick="removeService(this)">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <button type="button" class="btn btn-outline-light mt-2" onclick="addService()">
+                <i class="bi bi-plus-circle"></i> Tambah Layanan
+            </button>
+            <small class="d-block mt-2" style="color: #a0a0a0;">Contoh: Tattoo Small, Tattoo Medium, Touch Up, dll.</small>
+            
+            <h5 class="text-white mb-3 mt-4" style="color: #a855f7 !important;"><i class="bi bi-credit-card"></i> Nomor Pembayaran</h5>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-white">Nomor GoPay</label>
+                    <input type="text" name="payment_gopay" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;" value="{{ artist.payment_gopay|default:'' }}" placeholder="0812xxxxxxx">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-white">Nomor OVO</label>
+                    <input type="text" name="payment_ovo" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;" value="{{ artist.payment_ovo|default:'' }}" placeholder="0812xxxxxxx">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-white">Nomor DANA</label>
+                    <input type="text" name="payment_dana" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;" value="{{ artist.payment_dana|default:'' }}" placeholder="0812xxxxxxx">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-white">Nomor ShopeePay</label>
+                    <input type="text" name="payment_shopeepay" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;" value="{{ artist.payment_shopeepay|default:'' }}" placeholder="0812xxxxxxx">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-white">Nama Bank</label>
+                    <input type="text" name="payment_bank_name" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;" value="{{ artist.payment_bank_name|default:'' }}" placeholder="BCA, BRI, dll">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-white">Nomor Rekening</label>
+                    <input type="text" name="payment_transfer" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;" value="{{ artist.payment_transfer|default:'' }}" placeholder="xxxx-xxxx-xxxx">
+                </div>
+            </div>
+            <small class="d-block mb-3" style="color: #a0a0a0;">Kosongkan jika tidak menyediakan metode pembayaran tersebut.</small>
+            
+            <h5 class="text-white mb-3 mt-4" style="color: #a855f7 !important;"><i class="bi bi-toggle-on"></i> Status</h5>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="is_verified" id="verifiedChk" {% if artist.is_verified %}checked{% endif %}>
+                        <label class="form-check-label text-white" for="verifiedChk">Verified</label>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="is_active" id="activeChk" {% if artist.is_active or not artist %}checked{% endif %}>
+                        <label class="form-check-label text-white" for="activeChk">Aktif</label>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="is_online" id="onlineChk" {% if artist.is_online %}checked{% endif %}>
+                        <label class="form-check-label text-white" for="onlineChk">Online</label>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-lg w-100 mt-3" style="background: #a855f7; color: #fff;">
+                <i class="bi bi-check-circle"></i> {% if artist %}Simpan Perubahan{% else %}Tambah Artist{% endif %}
+            </button>
+        </form>
+        
+        <template id="serviceTemplate">
+            <div class="row mb-2 service-item">
+                <div class="col-md-3">
+                    <select name="service_type" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;">
+                        <option value="tattoo">Tattoo</option>
+                        <option value="piercing">Piercing</option>
+                        <option value="touchup">Touch Up</option>
+                        <option value="removal">Removal</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <input type="text" name="service_name" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;" placeholder="Nama Layanan">
+                </div>
+                <div class="col-md-2">
+                    <input type="number" name="service_price_min" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;" placeholder="Min">
+                </div>
+                <div class="col-md-2">
+                    <input type="number" name="service_price_max" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;" placeholder="Max">
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-danger w-100" onclick="removeService(this)">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </template>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+let map, marker;
+const defaultLat = -6.2088;
+const defaultLng = 106.8456;
+
+function updateLocationStatus() {
+    const lat = document.getElementById('latInput').value;
+    const lng = document.getElementById('lngInput').value;
+    const statusEl = document.getElementById('locationStatus');
+    const latIcon = document.getElementById('latIcon');
+    const lngIcon = document.getElementById('lngIcon');
+    const alertEl = document.getElementById('locationSavedAlert');
+
+    if (lat && lng) {
+        statusEl.className = 'badge bg-success';
+        statusEl.innerHTML = '<i class="bi bi-check-circle"></i> Lokasi sudah di-set';
+        latIcon.className = 'bi bi-check-circle';
+        latIcon.style.color = '#4ade80';
+        lngIcon.className = 'bi bi-check-circle';
+        lngIcon.style.color = '#4ade80';
+        alertEl.style.display = 'block';
+    } else {
+        statusEl.className = 'badge bg-warning text-dark';
+        statusEl.innerHTML = '<i class="bi bi-exclamation-circle"></i> Lokasi belum di-set';
+        latIcon.className = 'bi bi-x-circle';
+        latIcon.style.color = '#f87171';
+        lngIcon.className = 'bi bi-x-circle';
+        lngIcon.style.color = '#f87171';
+        alertEl.style.display = 'none';
+    }
+}
+
+function initMap() {
+    const latVal = document.getElementById('latInput').value;
+    const lngVal = document.getElementById('lngInput').value;
+    const lat = parseFloat(latVal) || defaultLat;
+    const lng = parseFloat(lngVal) || defaultLng;
+
+    map = L.map('locationMap').setView([lat, lng], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    if (latVal) {
+        marker = L.marker([lat, lng]).addTo(map);
+    }
+
+    map.on('click', function(e) {
+        const lat = e.latlng.lat.toFixed(6);
+        const lng = e.latlng.lng.toFixed(6);
+        document.getElementById('latInput').value = lat;
+        document.getElementById('lngInput').value = lng;
+
+        if (marker) {
+            map.removeLayer(marker);
+        }
+        marker = L.marker([lat, lng]).addTo(map);
+
+        reverseGeocode(lat, lng);
+        updateLocationStatus();
+    });
+
+    updateLocationStatus();
+}
+
+async function searchLocation() {
+    const query = document.getElementById('searchAddress').value;
+    if (!query) return;
+
+    try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+        const data = await response.json();
+
+        if (data.length > 0) {
+            const result = data[0];
+            const lat = parseFloat(result.lat).toFixed(6);
+            const lng = parseFloat(result.lon).toFixed(6);
+
+            document.getElementById('latInput').value = lat;
+            document.getElementById('lngInput').value = lng;
+
+            if (marker) {
+                map.removeLayer(marker);
+            }
+            marker = L.marker([lat, lng]).addTo(map);
+            map.setView([lat, lng], 15);
+
+            if (result.display_name) {
+                document.getElementById('addressInput').value = result.display_name;
+            }
+
+            updateLocationStatus();
+        } else {
+            alert('Lokasi tidak ditemukan');
+        }
+    } catch (error) {
+        console.error('Search error:', error);
+        alert('Gagal mencari lokasi');
+    }
+}
+
+async function reverseGeocode(lat, lng) {
+    try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+        const data = await response.json();
+
+        if (data.display_name) {
+            document.getElementById('addressInput').value = data.display_name;
+        }
+    } catch (error) {
+        console.error('Reverse geocode error:', error);
+    }
+}
+
+function getCurrentLocation() {
+    if (!navigator.geolocation) {
+        alert('Geolocation tidak didukung browser ini');
+        return;
+    }
+
+    document.getElementById('locationStatus').innerHTML = '<span class="loading-spinner" style="width: 12px; height: 12px; border-width: 2px;"></span> Mendeteksi...';
+    document.getElementById('locationStatus').className = 'badge bg-info';
+
+    navigator.geolocation.getCurrentPosition(
+        function(position) {
+            const lat = position.coords.latitude.toFixed(6);
+            const lng = position.coords.longitude.toFixed(6);
+
+            document.getElementById('latInput').value = lat;
+            document.getElementById('lngInput').value = lng;
+
+            if (marker) {
+                map.removeLayer(marker);
+            }
+            marker = L.marker([lat, lng]).addTo(map);
+            map.setView([lat, lng], 15);
+
+            reverseGeocode(lat, lng);
+            updateLocationStatus();
+        },
+        function(error) {
+            let msg = 'Gagal mendeteksi lokasi';
+            if (error.code === 1) msg = 'Izin lokasi ditolak';
+            else if (error.code === 2) msg = 'Lokasi tidak tersedia';
+            else if (error.code === 3) msg = 'Timeout';
+
+            alert(msg);
+            updateLocationStatus();
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+    );
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    initMap();
+});
+
+document.getElementById('searchAddress').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        searchLocation();
+    }
+});
+
+function addService() {
+    const template = document.getElementById('serviceTemplate');
+    const container = document.getElementById('servicesContainer');
+    const clone = template.content.cloneNode(true);
+    container.appendChild(clone);
+}
+
+function removeService(btn) {
+    btn.closest('.service-item').remove();
+}
+</script>
+{% endblock %}

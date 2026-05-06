@@ -1,0 +1,100 @@
+{% extends 'tedapp/base.html' %}
+
+{% block content %}
+<div class="container py-3">
+    <h2 class="section-title mb-3">Notifikasi</h2>
+    
+    <div class="notifications-list">
+        {% for notif in notifications %}
+        <div class="notification-item {% if not notif.is_read %}unread{% endif %}">
+            <div class="notif-icon">
+                {% if notif.notif_type == 'booking_new' %}
+                <i class="bi bi-calendar-plus-fill"></i>
+                {% elif notif.notif_type == 'booking_confirmed' %}
+                <i class="bi bi-check-circle-fill text-success"></i>
+                {% elif notif.notif_type == 'booking_cancelled' %}
+                <i class="bi bi-x-circle-fill text-danger"></i>
+                {% elif notif.notif_type == 'artist_arrived' %}
+                <i class="bi bi-person-fill text-info"></i>
+                {% else %}
+                <i class="bi bi-gift-fill text-warning"></i>
+                {% endif %}
+            </div>
+            <div class="notif-content">
+                <h6 class="notif-title">{{ notif.title }}</h6>
+                <p class="notif-message">{{ notif.message }}</p>
+                <small class="notif-time">{{ notif.created_at|timesince }}</small>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-5">
+            <i class="bi bi-bell-slash fs-1" style="color: var(--text-secondary);"></i>
+            <h5 class="mt-3">Tidak ada notifikasi</h5>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.notifications-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.notification-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+}
+.notification-item:active {
+    background: rgba(168, 85, 247, 0.1);
+}
+.notification-item.unread {
+    background: rgba(168, 85, 247, 0.15);
+    border-color: var(--accent-purple);
+}
+.notif-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(168, 85, 247, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+.notif-icon .text-success { color: #22c55e; }
+.notif-icon .text-danger { color: #ef4444; }
+.notif-icon .text-info { color: #3b82f6; }
+.notif-icon .text-warning { color: #f59e0b; }
+.notif-content {
+    flex: 1;
+    min-width: 0;
+}
+.notif-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 2px;
+    color: var(--text-primary);
+}
+.notif-message {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
+.notif-time {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+</style>
+{% endblock %}

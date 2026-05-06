@@ -1,0 +1,56 @@
+{% extends 'tedapp/base.html' %}
+
+{% block extra_css %}
+<style>
+@media (max-width: 768px) {
+    .card-ted.p-5 { padding: 1.5rem !important; }
+    h2.section-title { font-size: 1.3rem; }
+    .form-label { font-size: 0.85rem; }
+    .mb-4 { margin-bottom: 1rem !important; }
+    .btn-ted-primary.btn-lg { padding: 0.8rem 1rem; font-size: 0.95rem; }
+    .text-center.mb-4 h2 { margin-top: 0.5rem !important; }
+    .text-center.mb-4 p { font-size: 0.85rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-5">
+                <div class="card-ted p-5">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-brush fs-1" style="color: var(--accent-purple);"></i>
+                        <h2 class="section-title mt-2">Masuk ke TED</h2>
+                        <p style="color: var(--text-secondary);">Selamat datang kembali!</p>
+                    </div>
+                    
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Username</label>
+                            <input type="text" name="username" class="form-control" required placeholder="Masukkan username...">
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Password</label>
+                            <input type="password" name="password" class="form-control" required placeholder="Masukkan password...">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-ted-primary btn-lg w-100">
+                            <i class="bi bi-box-arrow-in-right"></i> Masuk
+                        </button>
+                    </form>
+                    
+                    <p class="text-center mt-4" style="color: var(--text-secondary);">
+                        Belum punya akun? 
+                        <a href="{% url 'register' %}" style="color: var(--accent-purple);">Daftar sekarang</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

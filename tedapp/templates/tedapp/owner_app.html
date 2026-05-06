@@ -1,0 +1,122 @@
+{% extends 'tedapp/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard Owner - TED{% endblock %}
+
+{% block content %}
+<div class="container py-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="text-white mb-0"><i class="bi bi-speedometer2"></i> Dashboard Owner</h4>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-2 mb-3">
+        <div class="col-6">
+            <div class="card-ted p-3 text-center">
+                <i class="bi bi-people fs-3" style="color: var(--accent-purple);"></i>
+                <h4 class="mt-2 text-white">{{ total_artists }}</h4>
+                <small style="color: var(--text-secondary);">Total Artist</small>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="card-ted p-3 text-center">
+                <i class="bi bi-circle-fill fs-3" style="color: #4ade80;"></i>
+                <h4 class="mt-2 text-white">{{ online_artists }}</h4>
+                <small style="color: var(--text-secondary);">Online</small>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="card-ted p-3 text-center">
+                <i class="bi bi-cart fs-3" style="color: var(--accent-blue);"></i>
+                <h4 class="mt-2 text-white">{{ total_bookings }}</h4>
+                <small style="color: var(--text-secondary);">Total Pesanan</small>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="card-ted p-3 text-center">
+                <i class="bi bi-cash fs-3" style="color: #fbbf24;"></i>
+                <h4 class="mt-2 text-white">Rp {{ total_revenue|floatformat:0 }}</h4>
+                <small style="color: var(--text-secondary);">Pendapatan</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <h5 class="text-white mb-2">Menu Utama</h5>
+    <div class="row g-2 mb-3">
+        <div class="col-6">
+            <a href="{% url 'owner_artists' %}" class="card-ted p-3 text-decoration-none d-block">
+                <i class="bi bi-people fs-4" style="color: var(--accent-purple);"></i>
+                <span class="d-block text-white mt-2">Kelola Artist</span>
+                <small style="color: var(--text-secondary);">{{ total_artists }} artist</small>
+            </a>
+        </div>
+        <div class="col-6">
+            <a href="{% url 'owner_bookings' %}" class="card-ted p-3 text-decoration-none d-block">
+                <i class="bi bi-calendar-check fs-4" style="color: var(--accent-blue);"></i>
+                <span class="d-block text-white mt-2">Kelola Pesanan</span>
+                <small style="color: var(--text-secondary);">{{ pending_bookings }} pending</small>
+            </a>
+        </div>
+        <div class="col-6">
+            <a href="{% url 'owner_users' %}" class="card-ted p-3 text-decoration-none d-block">
+                <i class="bi bi-person-badge fs-4" style="color: #4ade80;"></i>
+                <span class="d-block text-white mt-2">Kelola User</span>
+                <small style="color: var(--text-secondary);">{{ total_users }} user</small>
+            </a>
+        </div>
+        <div class="col-6">
+            <a href="{% url 'owner_add_artist' %}" class="card-ted p-3 text-decoration-none d-block">
+                <i class="bi bi-person-plus fs-4" style="color: #fbbf24;"></i>
+                <span class="d-block text-white mt-2">Tambah Artist</span>
+                <small style="color: var(--text-secondary);">Buat akun artist</small>
+            </a>
+        </div>
+    </div>
+
+    <!-- Recent Bookings -->
+    <h5 class="text-white mb-2">Pesanan Terbaru</h5>
+    <div class="card-ted p-3 mb-3">
+        {% for booking in recent_bookings %}
+        <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+            <div>
+                <span class="text-white">#{{ booking.id }} - {{ booking.artist.name }}</span>
+                <small class="d-block" style="color: var(--text-secondary);">{{ booking.user.username }}</small>
+            </div>
+            <span class="badge rounded-pill {% if booking.status == 'pending' %}bg-warning{% elif booking.status == 'completed' %}bg-secondary{% else %}bg-success{% endif %}">
+                {{ booking.get_status_display }}
+            </span>
+        </div>
+        {% empty %}
+        <p style="color: var(--text-secondary);" class="text-center">Belum ada pesanan</p>
+        {% endfor %}
+    </div>
+
+    <!-- Recent Artists -->
+    <h5 class="text-white mb-2">Artist Terbaru</h5>
+    <div class="card-ted p-3">
+        {% for artist in recent_artists %}
+        <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+            <div class="d-flex align-items-center">
+                {% if artist.photo %}
+                <img src="{{ artist.photo.url }}" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                {% else %}
+                <div class="rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));">
+                    <i class="bi bi-person text-white"></i>
+                </div>
+                {% endif %}
+                <div>
+                    <span class="text-white">{{ artist.name }}</span>
+                    <small class="d-block" style="color: var(--text-secondary);">{{ artist.city }}</small>
+                </div>
+            </div>
+            <span class="badge rounded-pill {% if artist.is_online %}bg-success{% else %}bg-secondary{% endif %}">
+                {% if artist.is_online %}Online{% else %}Offline{% endif %}
+            </span>
+        </div>
+        {% empty %}
+        <p style="color: var(--text-secondary);" class="text-center">Belum ada artist</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

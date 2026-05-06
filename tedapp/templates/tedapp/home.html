@@ -1,0 +1,277 @@
+{% extends 'tedapp/base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'home.css' %}" />
+<style>
+@media (max-width: 768px) {
+    .promo-slide > div { padding: 15px !important; }
+    .promo-slide h4 { font-size: 1.1rem !important; }
+    .promo-slide p { font-size: 0.85rem !important; }
+    .promo-slide small { font-size: 0.7rem !important; }
+    .service-grid { gap: 6px; }
+    .service-item { padding: 10px 3px; min-height: 70px; }
+    .service-icon { width: 40px; height: 40px; font-size: 18px; }
+    .service-item small { font-size: 0.7rem; }
+    .category-chip { padding: 6px 12px; font-size: 0.8rem; }
+    .nearby-image { height: 90px; }
+    .nearby-info h6 { font-size: 0.9rem; }
+    .nearby-info small { font-size: 0.75rem; }
+    .card-ted.p-3 { padding: 12px !important; }
+    .map-container #map { height: 200px; }
+    .badge-ted { font-size: 0.65rem; padding: 0.25rem 0.5rem; }
+    .btn-ted-primary { padding: 0.7rem 1.2rem; font-size: 0.9rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Promo Banner Carousel -->
+<section class="py-3 px-3">
+    <div class="promo-carousel">
+        <div class="promo-slide active">
+            <div style="background: linear-gradient(135deg, #6B21A8, #2563EB); padding: 20px; border-radius: 15px;">
+                <h4 class="fw-bold mb-1">Diskon 50%</h4>
+                <p class="mb-2" style="opacity: 0.8;">Untuk tato pertama kamu!</p>
+                <small class="bg-warning px-2 py-1 rounded"> Promo TED </small>
+            </div>
+        </div>
+        <div class="promo-slide">
+            <div style="background: linear-gradient(135deg, #9333EA, #3B82F6); padding: 20px; border-radius: 15px;">
+                <h4 class="fw-bold mb-1">Tatoo di Jakarta</h4>
+                <p class="mb-2" style="opacity: 0.8;">Seniman terbaik & studio favorit!</p>
+                <small class="bg-warning px-2 py-1 rounded"> Jakarta </small>
+            </div>
+        </div>
+        <div class="promo-slide">
+            <div style="background: linear-gradient(135deg, #EC4899, #8B5CF6); padding: 20px; border-radius: 15px;">
+                <h4 class="fw-bold mb-1">Tatoo di Bandung</h4>
+                <p class="mb-2" style="opacity: 0.8;">Karya seniman lokal terbaik!</p>
+                <small class="bg-warning px-2 py-1 rounded"> Bandung </small>
+            </div>
+        </div>
+        <div class="promo-slide">
+            <div style="background: linear-gradient(135deg, #14B8A6, #06B6D4); padding: 20px; border-radius: 15px;">
+                <h4 class="fw-bold mb-1">Tatoo di Surabaya</h4>
+                <p class="mb-2" style="opacity: 0.8;">Studio tato profesional!</p>
+                <small class="bg-warning px-2 py-1 rounded"> Surabaya </small>
+            </div>
+        </div>
+        <div class="promo-dots">
+            <span class="promo-dot active" onclick="changeSlide(0)"></span>
+            <span class="promo-dot" onclick="changeSlide(1)"></span>
+            <span class="promo-dot" onclick="changeSlide(2)"></span>
+            <span class="promo-dot" onclick="changeSlide(3)"></span>
+            <span class="promo-dot" onclick="changeSlide(4)"></span>
+        </div>
+    </div>
+</section>
+
+<!-- Service Grid (Like Gojek) -->
+<section class="py-2 px-3">
+    <div class="service-grid">
+        <a href="{% url 'search_artists' %}?service=home" class="text-decoration-none">
+            <div class="service-item">
+                <div class="service-icon food-drink">
+                    <i class="bi bi-heart-fill text-white"></i>
+                </div>
+                <small class="text-white">Ke Rumah</small>
+            </div>
+        </a>
+        <a href="{% url 'search_artists' %}?service=studio" class="text-decoration-none">
+            <div class="service-item">
+                <div class="service-icon taxi">
+                    <i class="bi bi-shop text-white"></i>
+                </div>
+                <small class="text-white">Ke Studio</small>
+            </div>
+        </a>
+        <a href="{% url 'search_artists' %}?category=realistic" class="text-decoration-none">
+            <div class="service-item">
+                <div class="service-icon car">
+                    <i class="bi bi-person-fill text-white"></i>
+                </div>
+                <small class="text-white">Realistic</small>
+            </div>
+        </a>
+        <a href="{% url 'search_artists' %}?category=minimalist" class="text-decoration-none">
+            <div class="service-item">
+                <div class="service-icon mart">
+                    <i class="bi bi-gem text-white"></i>
+                </div>
+                <small class="text-white">Minimalist</small>
+            </div>
+        </a>
+        <a href="{% url 'search_artists' %}?category=traditional" class="text-decoration-none">
+            <div class="service-item">
+                <div class="service-icon ticket">
+                    <i class="bi bi-anchor text-white"></i>
+                </div>
+                <small class="text-white">Traditional</small>
+            </div>
+        </a>
+        <a href="{% url 'search_artists' %}?category=lettering" class="text-decoration-none">
+            <div class="service-item">
+                <div class="service-icon gold">
+                    <i class="bi bi-type text-dark"></i>
+                </div>
+                <small class="text-white">Lettering</small>
+            </div>
+        </a>
+        <a href="{% url 'search_artists' %}?category=geometric" class="text-decoration-none">
+            <div class="service-item">
+                <div class="service-icon more">
+                    <i class="bi bi-triangle text-white"></i>
+                </div>
+                <small class="text-white">Geometric</small>
+            </div>
+        </a>
+        <a href="{% url 'search_artists' %}" class="text-decoration-none">
+            <div class="service-item">
+                <div class="service-icon more">
+                    <i class="bi bi-three-dots text-white"></i>
+                </div>
+                <small class="text-white">Lainnya</small>
+            </div>
+        </a>
+    </div>
+</section>
+
+<!-- Category Chips Scroll -->
+<section class="px-3">
+    <div class="category-scroll">
+        <span class="category-chip active">Terdekat</span>
+        <span class="category-chip">Rating Tinggi</span>
+        <span class="category-chip">Termurah</span>
+        <span class="category-chip">Best Seller</span>
+        <span class="category-chip">Popular</span>
+    </div>
+</section>
+
+<!-- Search Bar -->
+<section class="px-3 py-2">
+    <a href="{% url 'search_artists' %}" class="text-decoration-none">
+        <div class="card-ted p-3 d-flex align-items-center">
+            <i class="bi bi-search" style="color: var(--accent-purple); font-size: 1.2rem;"></i>
+            <span class="ms-3 text-white">Cari layanan tato...</span>
+        </div>
+    </a>
+</section>
+
+<!-- Active Orders (If any) -->
+{% if user.is_authenticated and active_orders %}
+<section class="px-3 py-2">
+    <h5 class="text-white mb-2">Pesanan Aktif</h5>
+    {% for order in active_orders %}
+    <div class="order-card mb-2">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h6 class="mb-1 text-white">{{ order.artist.name }}</h6>
+                <small style="color: var(--text-secondary);">#{{ order.id }}</small>
+            </div>
+            <span class="badge-ted">{{ order.get_status_display }}</span>
+        </div>
+        <div class="order-status mt-2">
+            <span class="status-dot ongoing"></span>
+            <small>Sedang diproses...</small>
+        </div>
+    </div>
+    {% endfor %}
+</section>
+{% endif %}
+
+<!-- Nearby Artists -->
+<section class="px-3 py-2">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5 class="text-white mb-0">Terdekat dari Kamu</h5>
+        <a href="{% url 'search_artists' %}" style="color: var(--accent-purple); font-size: 0.9rem;">Lihat semua</a>
+    </div>
+    <div class="row g-2">
+        {% for artist in featured_artists|slice:"4" %}
+        <div class="col-6">
+            <a href="{% url 'artist_detail' artist.id %}" class="text-decoration-none">
+                <div class="nearby-card h-100">
+                    <div class="nearby-image position-relative">
+                        {% if artist.photo %}
+                        <img src="{{ artist.photo.url }}" class="w-100 h-100" style="object-fit: cover;" alt="{{ artist.name }}">
+                        {% else %}
+                        <i class="bi bi-person fs-1"></i>
+                        {% endif %}
+                        <span class="rating-badge">
+                            <i class="bi bi-star-fill text-warning"></i> {{ artist.rating }}
+                        </span>
+                    </div>
+                    <div class="nearby-info">
+                        <h6 class="mb-1 text-white">{{ artist.name }}</h6>
+                        <small style="color: var(--text-secondary);">
+                            <i class="bi bi-geo-alt"></i> {{ artist.address }}, {{ artist.city }}
+                        </small>
+                        <div class="mt-1">
+                            {% if artist.is_online %}
+                            <span class="badge-ted" style="background: #28A745; font-size: 0.7rem;">Online</span>
+                            {% else %}
+                            <span class="badge-ted" style="background: #6C757D; font-size: 0.7rem;">Offline</span>
+                            {% endif %}
+                            {% if artist.is_available_home %}
+                            <span class="badge-ted" style="background: #6B21A8; font-size: 0.7rem;">Rumah</span>
+                            {% endif %}
+                            {% if artist.is_available_studio %}
+                            <span class="badge-ted" style="background: #2563EB; font-size: 0.7rem;">Studio</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-4">
+            <p style="color: var(--text-secondary);">Tidak ada seniman terdekat</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Map Section -->
+<section class="px-3 py-3">
+    <div id="locationStatus" class="text-center mb-2" style="color: var(--text-secondary);"></div>
+    <div class="map-container">
+        <div id="map" style="height: 250px; border-radius: 15px;"></div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'home.js' %}"></script>
+<script>
+    // Promo carousel
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.promo-slide');
+    const dots = document.querySelectorAll('.promo-dot');
+    
+    function changeSlide(index) {
+        slides.forEach(s => s.classList.remove('active'));
+        dots.forEach(d => d.classList.remove('active'));
+        slides[index].classList.add('active');
+        dots[index].classList.add('active');
+        currentSlide = index;
+    }
+    
+    if (slides.length > 1) {
+        setInterval(function() {
+            currentSlide = (currentSlide + 1) % slides.length;
+            changeSlide(currentSlide);
+        }, 3000);
+    }
+    
+    // Category chip click
+    document.querySelectorAll('.category-chip').forEach(function(chip) {
+        chip.addEventListener('click', function() {
+            document.querySelectorAll('.category-chip').forEach(function(c) {
+                c.classList.remove('active');
+            });
+            this.classList.add('active');
+        });
+    });
+</script>
+{% endblock %}

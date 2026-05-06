@@ -1,0 +1,148 @@
+{% extends 'tedapp/base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Invoice - TED{% endblock %}
+
+{% block extra_css %}
+<style>
+@media print {
+    .no-print { display: none !important; }
+    .card-ted { box-shadow: none !important; border: 1px solid #ddd !important; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-3">
+    <div class="row mb-3 no-print">
+        <div class="col-12">
+            <a href="{% url 'my_bookings' %}" class="btn btn-ted-secondary btn-sm">
+                <i class="bi bi-arrow-left"></i> Kembali
+            </a>
+            <a href="{% url 'invoice_pdf' booking.id %}" class="btn btn-ted-primary btn-sm ms-2">
+                <i class="bi bi-download"></i> Simpan / Bagikan
+            </a>
+        </div>
+    </div>
+    
+    <div class="card-ted p-4">
+        <div class="d-flex justify-content-between align-items-start mb-4">
+            <div>
+                <h3 class="mb-0" style="color: var(--accent-purple);">
+                    <i class="bi bi-brush"></i> TED
+                </h3>
+                <small style="color: var(--text-secondary);">Tattoo on Demand</small>
+            </div>
+            <div class="text-end">
+                <h5 class="mb-0">INVOICE</h5>
+                <small style="color: var(--text-secondary);">#INV-{{ booking.id }}</small>
+            </div>
+        </div>
+        
+        <hr>
+        
+        <div class="row mb-4">
+            <div class="col-6">
+                <small style="color: var(--text-secondary);">Diterbitkan Kepada</small>
+                <h6>{{ booking.user.username }}</h6>
+                <small>{{ booking.user.email }}</small>
+            </div>
+            <div class="col-6 text-end">
+                <small style="color: var(--text-secondary);">Tanggal Invoice</small>
+                <h6>{{ booking.created_at|date:"d F Y" }}</h6>
+                <small>{{ booking.created_at|date:"H:i" }} WIB</small>
+            </div>
+        </div>
+        
+        <div class="mb-4 p-3" style="background: rgba(168, 85, 247, 0.1); border-radius: 10px;">
+            <div class="row">
+                <div class="col-6">
+                    <small style="color: var(--text-secondary);">Seniman Tato</small>
+                    <h6 class="mb-2">{{ booking.artist.name }}</h6>
+                    <small style="color: var(--text-secondary);">
+                        <i class="bi bi-geo-alt"></i> {{ booking.artist.address }}, {{ booking.artist.city }}
+                    </small>
+                </div>
+                <div class="col-6 text-end">
+                    <small style="color: var(--text-secondary);">Jadwal Tato</small>
+                    <h6 class="mb-2">{{ booking.booking_date|date:"d F Y" }} - {{ booking.booking_time }}</h6>
+                    <small>
+                        <i class="bi bi-building"></i> {% if booking.service_type == 'studio' %}Ke Studio{% else %}Ke Rumah{% endif %}
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <table class="table table-borderless">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--accent-purple);">
+                    <th class="py-3">Layanan</th>
+                    <th class="py-3 text-end">Harga</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="py-2">
+                        <strong>{{ booking.service.name }}</strong>
+                        <br>
+                        <small style="color: var(--text-secondary);">{{ booking.service.description }}</small>
+                    </td>
+                    <td class="py-2 text-end">Rp {{ booking.service.price_min|floatformat:0 }}</td>
+                </tr>
+                {% if booking.service_type == 'home' %}
+                <tr>
+                    <td class="py-2">Biaya Layanan Rumah</td>
+                    <td class="py-2 text-end">Rp {{ booking.artist.home_service_fee|floatformat:0 }}</td>
+                </tr>
+                {% endif %}
+            </tbody>
+            <tfoot>
+                <tr style="border-top: 2px solid var(--accent-purple);">
+                    <td class="py-3"><strong>Total Pembayaran</strong></td>
+                    <td class="py-3 text-end">
+                        <h4 class="mb-0" style="color: var(--accent-purple);">Rp {{ booking.total_price|floatformat:0 }}</h4>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+        
+        <div class="mb-4 p-3" style="background: #d4edda; border-radius: 10px;">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-check-circle-fill fs-4" style="color: #28a745;"></i>
+                <div class="ms-2">
+                    <h6 class="mb-0" style="color: #28a745;">LUNAS</h6>
+                    <small style="color: #155724;">Metode: {{ booking.get_payment_method_display }}</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-6">
+                <small style="color: var(--text-secondary);">Alamat Tato</small>
+                <p class="mb-0">{{ booking.address }}</p>
+                <p class="mb-0">{{ booking.city }}</p>
+            </div>
+            <div class="col-6 text-end">
+                <small style="color: var(--text-secondary);">No. Invoice</small>
+                <p class="mb-0">INV-{{ booking.id }}</p>
+                <small class="text-muted">{{ booking.created_at|date:"Ymd" }}{{ booking.id }}</small>
+            </div>
+        </div>
+        
+        <hr>
+        
+        <div class="text-center">
+            <small style="color: var(--text-secondary);">
+                Terima kasih telah mempercayakan proyek tato Anda kepada TED
+            </small>
+        </div>
+    </div>
+    
+    <div class="text-center mt-3 no-print">
+        <a href="{% url 'my_bookings' %}" class="btn btn-ted-primary">
+            <i class="bi bi-calendar-check"></i> Lihat Pesanan Saya
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,209 @@
+{% extends 'tedapp/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-3">
+    <div class="row mb-3">
+        <div class="col-12">
+            <a href="{% url 'my_bookings' %}" class="btn btn-ted-secondary btn-sm">
+                <i class="bi bi-arrow-left"></i> Kembali
+            </a>
+        </div>
+    </div>
+    
+    <div class="card-ted p-3 mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0">Pesanan #{{ booking.id }}</h4>
+            <span class="badge-ted
+                {% if booking.status == 'pending' %}bg-warning
+                {% elif booking.status == 'confirmed' %}bg-success
+                {% elif booking.status == 'on_the_way' %}bg-info
+                {% elif booking.status == 'arrived' %}bg-primary
+                {% elif booking.status == 'started' %}bg-primary
+                {% elif booking.status == 'completed' %}bg-secondary
+                {% else %}bg-danger{% endif %}">
+                {{ booking.get_status_display }}
+            </span>
+        </div>
+        
+        <div class="d-flex align-items-center mb-3">
+            {% if booking.artist.photo %}
+            <img src="{{ booking.artist.photo.url }}" class="rounded-circle me-3" style="width: 60px; height: 60px; object-fit: cover;">
+            {% else %}
+            <div class="rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--primary-purple) 0%, var(--primary-blue) 100%);">
+                <i class="bi bi-person"></i>
+            </div>
+            {% endif %}
+            <div>
+                <h5 class="mb-1">{{ booking.artist.name }}</h5>
+                <small style="color: var(--text-secondary);">{{ booking.artist.nickname }}</small>
+                <div class="mt-2 d-flex gap-2 flex-wrap">
+                    <a href="{% url 'chat' booking.id %}" class="btn btn-ted-primary btn-sm">
+                        <i class="bi bi-chat-dots"></i> Chat Privat
+                    </a>
+                    <a href="https://wa.me/62{{ booking.artist.phone|slice:'1:' }}?text=Halo {{ booking.artist.name }}, saya {{ booking.user.username }} dengan pesanan #{{ booking.id }}" target="_blank" class="btn btn-success btn-sm">
+                        <i class="bi bi-whatsapp"></i> WhatsApp
+                    </a>
+                    <a href="tel:{{ booking.artist.phone }}" class="btn btn-ted-secondary btn-sm">
+                        <i class="bi bi-telephone"></i> Telepon
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if booking.service_type == 'home' %}
+    <div class="card-ted p-3 mb-3">
+        <h5 class="mb-3"><i class="bi bi-map"></i> Lacak Seniman</h5>
+        <div id="trackingMap" style="height: 250px; border-radius: 10px; background: var(--card-bg);" data-user-lat="{{ booking.user_latitude|default:"0" }}" data-user-lng="{{ booking.user_longitude|default:"0" }}">
+            <div id="mapLoading" class="d-flex align-items-center justify-content-center h-100">
+                <div class="text-center">
+                    <div class="loading-spinner mx-auto"></div>
+                    <p class="mt-2" style="color: var(--text-secondary);">Memuat peta...</p>
+                </div>
+            </div>
+        </div>
+        <div id="trackingInfo" class="mt-2 text-center">
+            <p style="color: var(--text-secondary);">Memuat lokasi...</p>
+        </div>
+        <div class="mt-2">
+            <button class="btn btn-ted-primary btn-sm w-100" id="refreshBtn" onclick="refreshTracking()">
+                <i class="bi bi-arrow-clockwise"></i> Refresh
+            </button>
+        </div>
+        <div id="trackingStatus" class="mt-2 text-center" style="display: none;">
+            <span class="badge bg-warning p-2">
+                <i class="bi bi-info-circle"></i> <span id="statusText"></span>
+            </span>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="card-ted p-3 mb-3">
+        <h5 class="mb-3">Status Pesanan</h5>
+        <div class="d-flex align-items-center mb-3">
+            <div class="status-timeline">
+                <div class="status-item {% if booking.status == 'pending' %}active{% elif booking.status != 'pending' %}completed{% endif %}">
+                    <i class="bi bi-clock"></i>
+                    <span>Menunggu</span>
+                </div>
+                <div class="status-item {% if booking.status == 'confirmed' %}active{% elif booking.status == 'on_the_way' or booking.status == 'arrived' or booking.status == 'completed' %}completed{% endif %}">
+                    <i class="bi bi-check-circle"></i>
+                    <span>Dikonfirmasi</span>
+                </div>
+                <div class="status-item {% if booking.status == 'on_the_way' %}active{% elif booking.status == 'arrived' or booking.status == 'completed' %}completed{% endif %}">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Perjalanan</span>
+                </div>
+                <div class="status-item {% if booking.status == 'arrived' %}active{% elif booking.status == 'completed' %}completed{% endif %}">
+                    <i class="bi bi-flag"></i>
+                    <span>Tiba</span>
+                </div>
+                <div class="status-item {% if booking.status == 'completed' %}completed{% endif %}">
+                    <i class="bi bi-check-all"></i>
+                    <span>Selesai</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card-ted p-3 mb-3">
+        <h5 class="mb-3">Detail Pesanan</h5>
+        <div class="row">
+            <div class="col-6 mb-2">
+                <small style="color: var(--text-secondary);">Layanan</small>
+                <p class="mb-0 fw-bold">{{ booking.service.name }}</p>
+            </div>
+            <div class="col-6 mb-2">
+                <small style="color: var(--text-secondary);">Tipe</small>
+                <p class="mb-0">
+                    {% if booking.service_type == 'home' %}
+                    <i class="bi bi-house-check"></i> Ke Rumah
+                    {% else %}
+                    <i class="bi bi-building"></i> Ke Studio
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-6 mb-2">
+                <small style="color: var(--text-secondary);">Tanggal</small>
+                <p class="mb-0">{{ booking.booking_date }}</p>
+            </div>
+            <div class="col-6 mb-2">
+                <small style="color: var(--text-secondary);">Waktu</small>
+                <p class="mb-0">{{ booking.booking_time }}</p>
+            </div>
+            <div class="col-12 mb-2">
+                <small style="color: var(--text-secondary);">Alamat</small>
+                <p class="mb-0">{{ booking.address }}</p>
+                {% if distance %}
+                <small style="color: var(--accent-purple);"><i class="bi bi-signpost-2"></i> ~{{ distance|floatformat:1 }} km dari artist</small>
+                {% endif %}
+            </div>
+            <div class="col-12 mb-2">
+                <small style="color: var(--text-secondary);">Kota</small>
+                <p class="mb-0">{{ booking.city }}</p>
+            </div>
+            {% if booking.service_type == 'studio' and booking.artist.studio_address %}
+            <div class="col-12 mb-2">
+                <small style="color: var(--text-secondary);">Lokasi Studio</small>
+                <p class="mb-0"><i class="bi bi-building"></i> {{ booking.artist.studio_address }}</p>
+            </div>
+            {% endif %}
+            {% if booking.description %}
+            <div class="col-12 mb-2">
+                <small style="color: var(--text-secondary);">Deskripsi</small>
+                <p class="mb-0">{{ booking.description }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="card-ted p-3 mb-3">
+        <h5 class="mb-3">Total Pembayaran</h5>
+        <h3 style="color: var(--accent-purple);">Rp {{ booking.total_price|floatformat:0 }}</h3>
+        {% if booking.payment_status == 'paid' %}
+        <div class="mt-2 p-2" style="background: #d4edda; border-radius: 8px;">
+            <i class="bi bi-check-circle-fill" style="color: #28a745;"></i>
+            <span style="color: #28a745;">LUNAS - {{ booking.get_payment_method_display }}</span>
+        </div>
+        <a href="{% url 'invoice' booking.id %}" class="btn btn-ted-primary btn-sm mt-2">
+            <i class="bi bi-file-text"></i> Lihat Invoice
+        </a>
+        {% else %}
+        <a href="{% url 'payment' booking.id %}" class="btn btn-warning mt-2">
+            <i class="bi bi-credit-card"></i> Bayar Sekarang
+        </a>
+        {% endif %}
+    </div>
+    
+    <div class="card-ted p-3 mb-3">
+        <small style="color: var(--text-secondary);">Dibuat</small>
+        <p class="mb-0">{{ booking.created_at }}</p>
+    </div>
+    
+    {% if booking.status == 'pending' or booking.status == 'confirmed' %}
+    <div class="d-grid gap-2">
+        <a href="{% url 'cancel_booking' booking.id %}" class="btn btn-ted-secondary" onclick="return confirm('Yakin ingin membatalkan?')">
+            <i class="bi bi-x-circle"></i> Batalkan Pesanan
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<link rel="stylesheet" href="{% static 'booking_detail.css' %}">
+<script>
+    window.refreshTracking = window.refreshTracking || function() {
+        console.log('Tracking not available for this booking');
+    };
+</script>
+{% if booking.service_type == 'home' %}
+<script src="{% static 'booking_detail.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        BookingDetailTracking.init("{{ booking.id }}");
+    });
+</script>
+{% endif %}
+{% endblock %}

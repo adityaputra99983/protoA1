@@ -1,0 +1,128 @@
+{% extends 'tedapp/base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block extra_css %}
+<style>
+@media (max-width: 768px) {
+    .booking-option { min-width: 100px; padding: 10px !important; }
+    .booking-option .fs-4 { font-size: 1.5rem !important; }
+    .booking-option h6 { font-size: 0.85rem; }
+    .booking-option small { font-size: 0.7rem; }
+    .col-6 { padding-left: 6px; padding-right: 6px; }
+    .btn-ted-secondary.btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-3">
+    <div class="row mb-3">
+        <div class="col-12">
+            <a href="{% url 'artist_detail' artist.id %}" class="btn btn-ted-secondary btn-sm">
+                <i class="bi bi-arrow-left"></i> Kembali
+            </a>
+        </div>
+    </div>
+    
+    <div class="card-ted p-3 mb-3">
+        <h4 class="section-title mb-3">Booking {{ artist.name }}</h4>
+        
+        <div class="mb-3 p-2" style="background: rgba(168, 85, 247, 0.1); border-radius: 10px;">
+            <small style="color: var(--text-secondary);">
+                <i class="bi bi-geo-alt"></i> <strong>Lokasi Artist:</strong> {{ artist.address }}, {{ artist.city }}
+            </small>
+            {% if distance %}
+            <br>
+            <small style="color: var(--accent-purple);">
+                <i class="bi bi-signpost-2"></i> <strong>Jarak:</strong> ~{{ distance|floatformat:1 }} km dari lokasi Anda
+            </small>
+            {% endif %}
+        </div>
+        
+        <form method="POST" id="bookingForm">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label class="form-label">Layanan</label>
+                <select name="service" class="form-control" required>
+                    <option value="">-- Pilih Layanan --</option>
+                    {% for service in services %}
+                    <option value="{{ service.id }}">{{ service.name }} - Rp {{ service.price_min|floatformat:0 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Tipe Layanan</label>
+                <div class="d-flex gap-2 flex-wrap">
+                    {% if artist.is_available_home %}
+                    <label class="card-ted p-3 flex-grow-1" style="cursor: pointer; min-width: 140px;">
+                        <input type="radio" name="service_type" value="home" required>
+                        <div class="text-center mt-2">
+                            <i class="bi bi-house-check fs-4" style="color: var(--accent-purple);"></i>
+                            <h6 class="mb-1">Ke Rumah</h6>
+                            <small style="color: var(--text-secondary);">+Rp {{ artist.home_service_fee|floatformat:0 }}</small>
+                        </div>
+                    </label>
+                    {% endif %}
+                    {% if artist.is_available_studio %}
+                    <label class="card-ted p-3 flex-grow-1" style="cursor: pointer; min-width: 140px;">
+                        <input type="radio" name="service_type" value="studio" required>
+                        <div class="text-center mt-2">
+                            <i class="bi bi-building fs-4" style="color: var(--accent-blue);"></i>
+                            <h6 class="mb-1">Ke Studio</h6>
+                            <small style="color: var(--text-secondary);">Tanpa tambahan</small>
+                        </div>
+                    </label>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-6 mb-3">
+                    <label class="form-label">Tanggal</label>
+                    <input type="date" name="booking_date" class="form-control" required min="{{ min_date }}">
+                </div>
+                <div class="col-6 mb-3">
+                    <label class="form-label">Waktu</label>
+                    <input type="time" name="booking_time" class="form-control" required>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">
+                    <i class="bi bi-geo-alt"></i> Alamat Lengkap
+                    <button type="button" class="btn btn-ted-secondary btn-sm ms-2" onclick="BookArtist.getCurrentLocation()">
+                        <i class="bi bi-crosshair"></i> Gunakan Lokasi Saya
+                    </button>
+                </label>
+                <textarea name="address" id="addressField" class="form-control" rows="2" required placeholder="Masukkan alamat lengkap...">{{ user_profile.address }}</textarea>
+                <input type="hidden" name="user_lat" id="userLat">
+                <input type="hidden" name="user_lng" id="userLng">
+                <div id="locationStatus" class="mt-1" style="color: var(--text-secondary); font-size: 0.8rem;">
+                    {% if user_lat and user_lng %}<i class="bi bi-check-circle"></i> Lokasi terdeteksi{% endif %}
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Kota</label>
+                <input type="text" name="city" class="form-control" required placeholder="Contoh: Jakarta" value="{{ user_profile.city }}">
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Deskripsi Tato (opsional)</label>
+                <textarea name="description" class="form-control" rows="3" placeholder="Jelaskan desain tato yang diinginkan..."></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-ted-primary btn-lg w-100">
+                <i class="bi bi-check-circle"></i> Konfirmasi Booking
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'book_artist.js' %}"></script>
+{% endblock %}

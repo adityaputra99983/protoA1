@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6B21A8"/>
+      <stop offset="100%" style="stop-color:#2563EB"/>
+    </linearGradient>
+    <linearGradient id="needle" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#E9D5FF"/>
+      <stop offset="100%" style="stop-color:#A855F7"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="120" fill="url(#bg)"/>
+  
+  <path d="M160 140 L160 200 L140 200 A20 20 0 0 1 140 240 L160 240 L160 340 L200 340 A40 40 0 0 0 280 340 L280 240 L300 240 A20 20 0 0 1 300 200 L280 200 L280 140 L160 140Z" fill="white"/>
+  
+  <rect x="180" y="240" width="100" height="20" rx="5" fill="#E9D5FF"/>
+  
+  <circle cx="256" cy="380" r="50" fill="white"/>
+  <circle cx="256" cy="380" r="30" fill="#6B21A8"/>
+  
+  <rect x="252" y="320" width="8" height="60" rx="2" fill="url(#needle)"/>
+  
+  <circle cx="256" cy="430" r="8" fill="white"/>
+</svg>

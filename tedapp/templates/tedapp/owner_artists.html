@@ -1,0 +1,171 @@
+{% extends 'tedapp/owner_base.html' %}
+
+{% block page_title %}Kelola Artist{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="text-white mb-0">Kelola Artist</h3>
+    <a href="{% url 'owner_add_artist' %}" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> Tambah Artist
+    </a>
+</div>
+
+<div class="card border-0 mb-4" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 15px;">
+    <div class="card-body">
+        <form method="GET" class="d-flex gap-2">
+            <input type="text" name="q" class="form-control" style="background: #0f0f23; border: 1px solid #333; color: #fff;" placeholder="Cari nama, kota..." value="{{ search }}">
+            <button type="submit" class="btn btn-primary" style="background: #a855f7; border: none;">
+                <i class="bi bi-search"></i>
+            </button>
+        </form>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<div class="row g-3">
+    {% for artist in artists %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card border-0 h-100" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 15px;">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    {% if artist.photo %}
+                    <img src="{{ artist.photo.url }}" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                    {% else %}
+                    <div class="rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background: linear-gradient(135deg, #6B21A8 0%, #2563EB 100%);">
+                        <i class="bi bi-person text-white"></i>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <h6 class="text-white mb-0">{{ artist.name }}</h6>
+                        <small style="color: #a0a0a0;">@{{ artist.nickname }}</small>
+                        <small class="d-block" style="color: #a0a0a0;"><i class="bi bi-telephone"></i> {{ artist.phone }}</small>
+                    </div>
+                </div>
+
+                <div class="mb-3" style="font-size: 0.85rem;">
+                    <p class="mb-1" style="color: #a0a0a0;"><i class="bi bi-geo-alt"></i> <strong style="color: #fff;">{{ artist.address }}</strong>, {{ artist.city }}</p>
+                    {% if artist.has_location %}
+                    <p class="mb-1" style="color: #4ade80;"><i class="bi bi-check-circle"></i> <strong>Lokasi: {{ artist.latitude|floatformat:4 }}, {{ artist.longitude|floatformat:4 }}</strong></p>
+                    {% else %}
+                    <p class="mb-0" style="color: #f87171;"><i class="bi bi-exclamation-triangle"></i> Lokasi belum di-set</p>
+                    {% endif %}
+                </div>
+
+                {% if artist.has_location %}
+                <div class="owner-map-container mb-3" data-lat="{{ artist.latitude }}" data-lng="{{ artist.longitude }}" data-name="{{ artist.name }}" data-address="{{ artist.address }}" data-city="{{ artist.city }}" style="height: 140px; border-radius: 8px; overflow: hidden; border: 2px solid #a855f7;"></div>
+                {% else %}
+                <div class="d-flex align-items-center justify-content-center mb-3" style="height: 140px; border-radius: 8px; background: #0f0f23; border: 2px dashed #f87171;">
+                    <div class="text-center">
+                        <i class="bi bi-geo-alt fs-3" style="color: #f87171;"></i>
+                        <p class="mb-0 mt-2" style="color: #f87171; font-size: 0.85rem;">Lokasi belum di-set</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="d-flex gap-2 mb-3">
+                    {% if artist.is_online %}
+                    <span class="badge bg-success">Online</span>
+                    {% else %}
+                    <span class="badge bg-secondary">Offline</span>
+                    {% endif %}
+                    {% if artist.is_verified %}
+                    <span class="badge bg-primary"><i class="bi bi-patch-check-fill"></i> Verified</span>
+                    {% endif %}
+                    {% if artist.is_active %}
+                    <span class="badge bg-info">Aktif</span>
+                    {% else %}
+                    <span class="badge bg-danger">Nonaktif</span>
+                    {% endif %}
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'owner_artist_detail' artist.id %}" class="btn btn-sm flex-fill" style="background: #2563EB; color: #fff;">
+                        <i class="bi bi-graph-up"></i> Perkembangan
+                    </a>
+                    <a href="{% url 'owner_edit_artist' artist.id %}" class="btn btn-sm" style="background: #a855f7; color: #fff;">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="{% url 'owner_delete_artist' artist.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Yakin hapus artist {{ artist.name }}?')">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5">
+        <i class="bi bi-people fs-1" style="color: #a0a0a0;"></i>
+        <h5 class="mt-3 text-white">Tidak ada artist</h5>
+        <a href="{% url 'owner_add_artist' %}" class="btn btn-success mt-2">Tambah Artist</a>
+    </div>
+    {% endfor %}
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function() {
+    function initAllMaps() {
+        document.querySelectorAll('.owner-map-container').forEach(function(container) {
+            var lat = container.dataset.lat;
+            var lng = container.dataset.lng;
+            var name = container.dataset.name || '';
+            var address = container.dataset.address || '';
+            var city = container.dataset.city || '';
+
+            if (!lat || !lng) return;
+
+            try {
+                var map = L.map(container, {
+                    zoomControl: false,
+                    dragging: false,
+                    touchZoom: false,
+                    scrollWheelZoom: false,
+                    doubleClickZoom: false,
+                    attributionControl: false
+                }).setView([parseFloat(lat), parseFloat(lng)], 15);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+                var icon = L.divIcon({
+                    className: 'custom-owner-marker',
+                    html: '<div style="background: linear-gradient(135deg, #a855f7, #2563EB); width: 36px; height: 36px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.5);"><i class="bi bi-brush" style="font-size: 16px;"></i></div>',
+                    iconSize: [36, 36],
+                    iconAnchor: [18, 36],
+                    popupAnchor: [0, -36]
+                });
+
+                var popupContent = '<b style="color: #a855f7;">' + name + '</b>';
+                if (address) popupContent += '<br><small>' + address + '</small>';
+                if (city) popupContent += '<br><small><i class="bi bi-geo-alt"></i> ' + city + '</small>';
+
+                L.marker([parseFloat(lat), parseFloat(lng)], {icon: icon})
+                    .addTo(map)
+                    .bindPopup(popupContent, {maxWidth: 200})
+                    .openPopup();
+
+            } catch (e) {
+                console.error('Map init error:', e);
+                container.style.background = '#0f0f23';
+                container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#f87171;"><i class="bi bi-exclamation-triangle"></i> Gagal load map</div>';
+            }
+        });
+    }
+
+    if (typeof L !== 'undefined') {
+        initAllMaps();
+    } else {
+        var checkCount = 0;
+        var checkL = setInterval(function() {
+            checkCount++;
+            if (typeof L !== 'undefined') {
+                clearInterval(checkL);
+                initAllMaps();
+            } else if (checkCount > 20) {
+                clearInterval(checkL);
+                console.error('Leaflet failed to load');
+            }
+        }, 100);
+    }
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends 'tedapp/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+@media (max-width: 768px) {
+    .map-container #searchMap { height: 220px !important; border-radius: 12px !important; }
+    .col-6 { width: 50%; }
+    .card-ted.p-3 { padding: 12px !important; }
+    h6 { font-size: 0.85rem; }
+    .d-block { font-size: 0.75rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-3">
+    <h2 class="section-title mb-3">Pencarian</h2>
+    
+    <div class="card-ted p-3 mb-3">
+        <form method="GET" action="{% url 'search_artists' %}">
+            <div class="input-group">
+                <input type="text" name="q" class="form-control" placeholder="Cari nama, kota, spesialisasi..." value="{{ query }}">
+                <button type="submit" class="btn btn-ted-primary">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <div class="map-container mb-3">
+        <div id="searchMap" style="height: 300px; border-radius: 15px;"></div>
+    </div>
+    
+    <h5 class="mb-3">Hasil</h5>
+    <div class="row g-3">
+        {% for artist in artists %}
+        <div class="col-6">
+            <a href="{% url 'artist_detail' artist.id %}" class="text-decoration-none">
+                <div class="card-ted p-3 h-100">
+                    <h6 class="mb-1 text-white">{{ artist.name }}</h6>
+                    <small style="color: var(--text-secondary);">
+                        <i class="bi bi-geo-alt"></i> {{ artist.address }}, {{ artist.city }}
+                    </small>
+                    {% if user_lat and artist.distance_to_user_val %}
+                    <small class="d-block" style="color: var(--accent-purple);">
+                        <i class="bi bi-signpost-2"></i> ~{{ artist.distance_to_user_val|floatformat:1 }} km
+                    </small>
+                    {% endif %}
+                    <div class="mt-2">
+                        <span class="rating-stars"><i class="bi bi-star-fill"></i> {{ artist.rating }}</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-4">
+            <p style="color: var(--text-secondary);">Ketik untuk mencari seniman...</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'search.js' %}"></script>
+{% endblock %}

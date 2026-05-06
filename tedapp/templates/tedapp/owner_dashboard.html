@@ -1,0 +1,87 @@
+{% extends 'tedapp/owner_base.html' %}
+
+{% block page_title %}Dashboard - Owner Panel{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card border-0" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 15px;">
+            <div class="card-body text-center">
+                <i class="bi bi-people fs-1" style="color: #a855f7;"></i>
+                <h3 class="mt-2 text-white">{{ total_artists }}</h3>
+                <small style="color: #a0a0a0;">Total Artist</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 15px;">
+            <div class="card-body text-center">
+                <i class="bi bi-circle-fill fs-1" style="color: #4ade80;"></i>
+                <h3 class="mt-2 text-white">{{ online_artists }}</h3>
+                <small style="color: #a0a0a0;">Online</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 15px;">
+            <div class="card-body text-center">
+                <i class="bi bi-cart fs-1" style="color: #60a5fa;"></i>
+                <h3 class="mt-2 text-white">{{ total_bookings }}</h3>
+                <small style="color: #a0a0a0;">Total Pesanan</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 15px;">
+            <div class="card-body text-center">
+                <i class="bi bi-cash fs-1" style="color: #fbbf24;"></i>
+                <h3 class="mt-2 text-white">Rp {{ total_revenue|floatformat:0 }}</h3>
+                <small style="color: #a0a0a0;">Total Pendapatan</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card border-0" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 15px;">
+            <div class="card-body">
+                <h5 class="text-white mb-3"><i class="bi bi-clock-history"></i> Pesanan Terbaru</h5>
+                {% for booking in recent_bookings %}
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                    <div>
+                        <span class="text-white">#{{ booking.id }} - {{ booking.artist.name }}</span>
+                        <small class="d-block" style="color: #a0a0a0;">{{ booking.user.username }}</small>
+                    </div>
+                    <span class="badge rounded-pill {% if booking.status == 'pending' %}bg-warning{% elif booking.status == 'completed' %}bg-secondary{% else %}bg-success{% endif %}">
+                        {{ booking.get_status_display }}
+                    </span>
+                </div>
+                {% empty %}
+                <p style="color: #a0a0a0;">Belum ada pesanan</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-0" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 15px;">
+            <div class="card-body">
+                <h5 class="text-white mb-3"><i class="bi bi-people"></i> Artist Terbaru</h5>
+                {% for artist in recent_artists %}
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                    <div>
+                        <span class="text-white">{{ artist.name }}</span>
+                        <small class="d-block" style="color: #a0a0a0;">{{ artist.city }}</small>
+                    </div>
+                    <span class="badge rounded-pill {% if artist.is_online %}bg-success{% else %}bg-secondary{% endif %}">
+                        {% if artist.is_online %}Online{% else %}Offline{% endif %}
+                    </span>
+                </div>
+                {% empty %}
+                <p style="color: #a0a0a0;">Belum ada artist</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

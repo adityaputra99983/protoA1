@@ -3,18 +3,7 @@
 {% load custom_filters %}
 
 {% block extra_css %}
-<style>
-@media (max-width: 768px) {
-    .card-ted.p-3 { padding: 12px !important; }
-    .rounded-circle.me-3 { width: 60px !important; height: 60px !important; margin-right: 10px !important; }
-    .rounded-circle.me-3 i { font-size: 1.5rem !important; }
-    h4.mb-1 { font-size: 1.15rem; }
-    h5.mb-3 { font-size: 1rem; }
-    .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
-    .service-badge { font-size: 0.7rem; padding: 0.25rem 0.5rem; }
-    #artistMap { height: 180px !important; border-radius: 8px !important; }
-}
-</style>
+<link rel="stylesheet" href="{% static 'artist_detail.css' %}" />
 {% endblock %}
 
 {% block content %}

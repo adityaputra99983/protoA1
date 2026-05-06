@@ -1,0 +1,7 @@
+@media (max-width: 768px) {
+    .map-container #searchMap { height: 220px !important; border-radius: 12px !important; }
+    .col-6 { width: 50%; }
+    .card-ted.p-3 { padding: 12px !important; }
+    h6 { font-size: 0.85rem; }
+    .d-block { font-size: 0.75rem; }
+}

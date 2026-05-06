@@ -1,0 +1,8 @@
+@media (max-width: 768px) {
+    .booking-option { min-width: 100px; padding: 10px !important; }
+    .booking-option .fs-4 { font-size: 1.5rem !important; }
+    .booking-option h6 { font-size: 0.85rem; }
+    .booking-option small { font-size: 0.7rem; }
+    .col-6 { padding-left: 6px; padding-right: 6px; }
+    .btn-ted-secondary.btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
+}

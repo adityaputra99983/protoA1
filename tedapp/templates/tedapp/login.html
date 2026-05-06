@@ -1,17 +1,7 @@
 {% extends 'tedapp/base.html' %}
 
 {% block extra_css %}
-<style>
-@media (max-width: 768px) {
-    .card-ted.p-5 { padding: 1.5rem !important; }
-    h2.section-title { font-size: 1.3rem; }
-    .form-label { font-size: 0.85rem; }
-    .mb-4 { margin-bottom: 1rem !important; }
-    .btn-ted-primary.btn-lg { padding: 0.8rem 1rem; font-size: 0.95rem; }
-    .text-center.mb-4 h2 { margin-top: 0.5rem !important; }
-    .text-center.mb-4 p { font-size: 0.85rem; }
-}
-</style>
+<link rel="stylesheet" href="{% static 'login.css' %}" />
 {% endblock %}
 
 {% block content %}

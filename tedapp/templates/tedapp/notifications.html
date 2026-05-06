@@ -1,4 +1,9 @@
 {% extends 'tedapp/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'notifications.css' %}" />
+{% endblock %}
 
 {% block content %}
 <div class="container py-3">
@@ -35,66 +40,4 @@
     </div>
 </div>
 
-<style>
-.notifications-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-.notification-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 14px;
-    background: var(--card-bg);
-    border-radius: 12px;
-    border: 1px solid rgba(168, 85, 247, 0.2);
-    cursor: pointer;
-    position: relative;
-    transition: all 0.2s;
-}
-.notification-item:active {
-    background: rgba(168, 85, 247, 0.1);
-}
-.notification-item.unread {
-    background: rgba(168, 85, 247, 0.15);
-    border-color: var(--accent-purple);
-}
-.notif-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    background: rgba(168, 85, 247, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    flex-shrink: 0;
-}
-.notif-icon .text-success { color: #22c55e; }
-.notif-icon .text-danger { color: #ef4444; }
-.notif-icon .text-info { color: #3b82f6; }
-.notif-icon .text-warning { color: #f59e0b; }
-.notif-content {
-    flex: 1;
-    min-width: 0;
-}
-.notif-title {
-    font-size: 0.95rem;
-    font-weight: 600;
-    margin-bottom: 2px;
-    color: var(--text-primary);
-}
-.notif-message {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    margin-bottom: 4px;
-    line-height: 1.4;
-}
-.notif-time {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    opacity: 0.7;
-}
-</style>
 {% endblock %}

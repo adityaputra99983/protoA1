@@ -34,8 +34,8 @@ body {
     padding-bottom: 20px;
 }
 
-/* Desktop Navbar (use class .navbar-ted for desktop, .mobile-only for mobile) */
-.navbar-ted, .desktop-nav, .desktop-navbar {
+/* Desktop Navbar */
+.navbar-ted {
     position: fixed;
     top: 0 !important;
     left: 0 !important;
@@ -46,12 +46,14 @@ body {
     align-items: center;
     z-index: 9999 !important;
     box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
-.desktop-navbar { display: none; }
-
-@media (min-width: 769px) {
-    .desktop-navbar { display: flex !important; }
+@media (max-width: 768px) {
+    .navbar-ted {
+        display: none !important;
+    }
 }
 
 .navbar-ted .container {
@@ -631,51 +633,7 @@ body {
     100% { transform: rotate(360deg); }
 }
 
-.navbar-ted {
-    background: linear-gradient(90deg, var(--primary-purple-dark) 0%, var(--primary-blue-dark) 100%);
-    padding: 1rem 0;
-    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
-    backdrop-filter: blur(10px);
-}
-
-.navbar-brand {
-    font-weight: 800;
-    font-size: 2rem;
-    background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-blue) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.nav-link {
-    color: var(--text-primary) !important;
-    font-weight: 500;
-    margin: 0 0.5rem;
-    transition: all 0.3s ease;
-}
-
-.navbar-brand {
-    font-weight: 800;
-    font-size: 2rem;
-    background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-blue) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.nav-link {
-    color: var(--text-primary) !important;
-    font-weight: 500;
-    margin: 0 0.5rem;
-    transition: all 0.3s ease;
-}
-
-.nav-link:hover {
-    color: var(--accent-purple) !important;
-    transform: translateY(-2px);
-}
-
-.btn-ted-primary {
+/* Loading animation */
     background: linear-gradient(135deg, var(--primary-purple) 0%, var(--primary-blue) 100%);
     border: none;
     color: white;

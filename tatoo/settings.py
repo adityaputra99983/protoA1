@@ -22,7 +22,7 @@ SECRET_KEY = 'django-insecure-299d(d-qukr)8w6(bv8u6(4)v0$a#kdu8e*4dt!o2xhv#ktqt%
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 INSTALLED_APPS = [
@@ -71,6 +71,13 @@ if os.environ.get('DATABASE_URL'):
     DATABASES = {
         'default': dj_database_url.parse(os.environ.get('DATABASE_URL'))
     }
+elif os.environ.get('VERCEL'):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': ':memory:',
+        }
+    }
 else:
     DATABASES = {
         'default': {
@@ -108,8 +115,11 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
-if os.environ.get('VERCEL') == '1':
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+if os.environ.get('VERCEL'):
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+    # Force DEBUG to True if you want to see errors on Vercel (optional, disable for production)
+    # DEBUG = True 
+
 
 # Media files
 MEDIA_URL = '/media/'

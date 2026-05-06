@@ -75,7 +75,7 @@ elif os.environ.get('VERCEL') or os.environ.get('VERCEL_URL'):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': ':memory:',
+            'NAME': '/tmp/db.sqlite3',
         }
     }
 else:

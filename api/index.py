@@ -19,15 +19,17 @@ application = get_wsgi_application()
 def run_setup():
     """Ensure database is ready and has sample data."""
     try:
-        # Get list of tables
-        tables = connection.introspection.table_names()
+        # Check if DB file exists in /tmp
+        db_path = '/tmp/db.sqlite3'
+        from django.conf import settings
         
         # If the main table doesn't exist, we need to migrate
+        tables = connection.introspection.table_names()
         if 'tedapp_artist' not in tables:
-            print("System: Tables not found. Running migrations...")
+            print(f"System: Tables not found in {db_path}. Running migrations...")
             call_command('migrate', interactive=False)
             
-            # Load sample data if migration was performed
+            # Load sample data
             try:
                 print("System: Loading sample data...")
                 call_command('add_sample_data', interactive=False)

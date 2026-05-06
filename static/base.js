@@ -34,6 +34,27 @@
         }
     };
 
+    function toggleMobileMenu() {
+        document.getElementById('mobileSlideMenu').classList.toggle('active');
+        document.getElementById('mobileOverlay').classList.toggle('active');
+        document.querySelector('.mobile-menu-toggle').classList.toggle('active');
+    }
+
+    function closeMobileMenu() {
+        document.getElementById('mobileSlideMenu').classList.remove('active');
+        document.getElementById('mobileOverlay').classList.remove('active');
+        document.querySelector('.mobile-menu-toggle').classList.remove('active');
+    }
+
+    window.toggleMobileMenu = toggleMobileMenu;
+    window.closeMobileMenu = closeMobileMenu;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.menu-link').forEach(function(link) {
+            link.addEventListener('click', closeMobileMenu);
+        });
+    });
+
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/static/service-worker.js?v=40')
             .then(function(reg) { 

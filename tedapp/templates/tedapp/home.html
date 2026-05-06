@@ -4,26 +4,6 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'home.css' %}" />
-<style>
-@media (max-width: 768px) {
-    .promo-slide > div { padding: 15px !important; }
-    .promo-slide h4 { font-size: 1.1rem !important; }
-    .promo-slide p { font-size: 0.85rem !important; }
-    .promo-slide small { font-size: 0.7rem !important; }
-    .service-grid { gap: 6px; }
-    .service-item { padding: 10px 3px; min-height: 70px; }
-    .service-icon { width: 40px; height: 40px; font-size: 18px; }
-    .service-item small { font-size: 0.7rem; }
-    .category-chip { padding: 6px 12px; font-size: 0.8rem; }
-    .nearby-image { height: 90px; }
-    .nearby-info h6 { font-size: 0.9rem; }
-    .nearby-info small { font-size: 0.75rem; }
-    .card-ted.p-3 { padding: 12px !important; }
-    .map-container #map { height: 200px; }
-    .badge-ted { font-size: 0.65rem; padding: 0.25rem 0.5rem; }
-    .btn-ted-primary { padding: 0.7rem 1.2rem; font-size: 0.9rem; }
-}
-</style>
 {% endblock %}
 
 {% block content %}
@@ -243,35 +223,4 @@
 
 {% block extra_js %}
 <script src="{% static 'home.js' %}"></script>
-<script>
-    // Promo carousel
-    let currentSlide = 0;
-    const slides = document.querySelectorAll('.promo-slide');
-    const dots = document.querySelectorAll('.promo-dot');
-    
-    function changeSlide(index) {
-        slides.forEach(s => s.classList.remove('active'));
-        dots.forEach(d => d.classList.remove('active'));
-        slides[index].classList.add('active');
-        dots[index].classList.add('active');
-        currentSlide = index;
-    }
-    
-    if (slides.length > 1) {
-        setInterval(function() {
-            currentSlide = (currentSlide + 1) % slides.length;
-            changeSlide(currentSlide);
-        }, 3000);
-    }
-    
-    // Category chip click
-    document.querySelectorAll('.category-chip').forEach(function(chip) {
-        chip.addEventListener('click', function() {
-            document.querySelectorAll('.category-chip').forEach(function(c) {
-                c.classList.remove('active');
-            });
-            this.classList.add('active');
-        });
-    });
-</script>
 {% endblock %}

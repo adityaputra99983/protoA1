@@ -2,8 +2,45 @@
     var map;
     var userMarker;
     var watchId = null;
+    var currentSlide = 0;
+
+    function initCarousel() {
+        var slides = document.querySelectorAll('.promo-slide');
+        var dots = document.querySelectorAll('.promo-dot');
+        
+        if (slides.length === 0) return;
+        
+        window.changeSlide = function(index) {
+            slides.forEach(function(s) { s.classList.remove('active'); });
+            dots.forEach(function(d) { d.classList.remove('active'); });
+            slides[index].classList.add('active');
+            dots[index].classList.add('active');
+            currentSlide = index;
+        };
+        
+        if (slides.length > 1) {
+            setInterval(function() {
+                currentSlide = (currentSlide + 1) % slides.length;
+                window.changeSlide(currentSlide);
+            }, 3000);
+        }
+    }
+
+    function initCategoryChips() {
+        document.querySelectorAll('.category-chip').forEach(function(chip) {
+            chip.addEventListener('click', function() {
+                document.querySelectorAll('.category-chip').forEach(function(c) {
+                    c.classList.remove('active');
+                });
+                this.classList.add('active');
+            });
+        });
+    }
 
     function initMap() {
+        var mapEl = document.getElementById('map');
+        if (!mapEl) return;
+        
         map = L.map('map').setView([-2.5, 118], 5);
         
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {

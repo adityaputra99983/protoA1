@@ -74,6 +74,19 @@
         border-radius: 10px;
         margin-bottom: 4px;
     }
+    .promo-slide > div { padding: 15px !important; }
+    .promo-slide h4 { font-size: 1.1rem !important; }
+    .promo-slide p { font-size: 0.85rem !important; }
+    .promo-slide small { font-size: 0.7rem !important; }
+    .service-item small { font-size: 0.7rem; }
+    .category-chip { padding: 6px 12px; font-size: 0.8rem; }
+    .nearby-image { height: 90px; }
+    .nearby-info h6 { font-size: 0.9rem; }
+    .nearby-info small { font-size: 0.75rem; }
+    .card-ted.p-3 { padding: 12px !important; }
+    .map-container #map { height: 200px; }
+    .badge-ted { font-size: 0.65rem; padding: 0.25rem 0.5rem; }
+    .btn-ted-primary { padding: 0.7rem 1.2rem; font-size: 0.9rem; }
 }
 
 .service-item {

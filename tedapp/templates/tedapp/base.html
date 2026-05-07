@@ -139,49 +139,49 @@
     {% block content %}{% endblock %}
 
     <!-- Mobile Bottom Navigation -->
-    <nav class="mobile-bottom-nav">
+    <nav class="bottom-nav">
         <a href="{% url 'home' %}" class="{% if request.path == '/' %}active{% endif %}">
-            <i class="bi bi-house-fill"></i>
+            <i class="bi bi-house"></i>
             <span>Beranda</span>
         </a>
         <a href="{% url 'artists' %}" class="{% if '/artists' in request.path %}active{% endif %}">
             <i class="bi bi-search"></i>
             <span>Cari</span>
         </a>
-        <a href="{% url 'search_artists' %}?q=" class="{% if '/search' in request.path %}active{% endif %}">
-            <i class="bi bi-geo-alt-fill"></i>
+        <a href="{% url 'search_artists' %}" class="{% if '/search' in request.path %}active{% endif %}">
+            <i class="bi bi-geo-alt"></i>
             <span>Terdekat</span>
         </a>
         <a href="{% if user.is_authenticated %}{% url 'my_bookings' %}{% else %}{% url 'login' %}{% endif %}" class="{% if '/bookings' in request.path %}active{% endif %}">
-            <i class="bi bi-bag-fill"></i>
+            <i class="bi bi-bag"></i>
             <span>Pesanan</span>
         </a>
         <a href="{% if user.is_authenticated %}{% url 'notifications' %}{% else %}{% url 'login' %}{% endif %}" class="{% if '/notifications' in request.path %}active{% endif %}">
-            <i class="bi bi-bell-fill"></i>
+            <i class="bi bi-bell"></i>
             <span>Notif</span>
         </a>
     </nav>
 
     <!-- Desktop Bottom Navigation -->
-    <nav class="desktop-bottom-nav">
+    <nav class="bottom-nav bottom-nav-desktop">
         <a href="{% url 'home' %}" class="{% if request.path == '/' %}active{% endif %}">
-            <i class="bi bi-house-fill"></i>
+            <i class="bi bi-house"></i>
             <span>Beranda</span>
         </a>
         <a href="{% url 'artists' %}" class="{% if '/artists' in request.path %}active{% endif %}">
             <i class="bi bi-search"></i>
             <span>Cari</span>
         </a>
-        <a href="{% url 'search_artists' %}?q=" class="{% if '/search' in request.path %}active{% endif %}">
-            <i class="bi bi-geo-alt-fill"></i>
+        <a href="{% url 'search_artists' %}" class="{% if '/search' in request.path %}active{% endif %}">
+            <i class="bi bi-geo-alt"></i>
             <span>Terdekat</span>
         </a>
         <a href="{% if user.is_authenticated %}{% url 'my_bookings' %}{% else %}{% url 'login' %}{% endif %}" class="{% if '/bookings' in request.path %}active{% endif %}">
-            <i class="bi bi-bag-fill"></i>
+            <i class="bi bi-bag"></i>
             <span>Pesanan</span>
         </a>
         <a href="{% if user.is_authenticated %}{% url 'notifications' %}{% else %}{% url 'login' %}{% endif %}" class="{% if '/notifications' in request.path %}active{% endif %}">
-            <i class="bi bi-bell-fill"></i>
+            <i class="bi bi-bell"></i>
             <span>Notif</span>
         </a>
     </nav>

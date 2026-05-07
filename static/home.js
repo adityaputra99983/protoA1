@@ -55,38 +55,59 @@
         var mapEl = document.getElementById('map');
         if (!mapEl) return;
         
-        map = L.map('map').setView([-2.5, 118], 5);
-        
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
-        
-        loadArtistsMarkers();
-        startLocationWatch();
+        try {
+            map = L.map('map', {
+                zoomControl: true,
+                attributionControl: true
+            }).setView([-2.5, 118], 5);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
+            loadArtistsMarkers();
+            startLocationWatch();
+        } catch(e) {
+            console.error('Map init error:', e);
+            var statusEl = document.getElementById('locationStatus');
+            if (statusEl) {
+                statusEl.innerHTML = '<span style="color: #f87171;"><i class="bi bi-x-circle"></i> Gagal load地图</span>';
+            }
+        }
     }
 
     function loadArtistsMarkers() {
         fetch('/api/artists/')
-            .then(function(response) { return response.json(); })
+            .then(function(response) {
+                if (!response.ok) throw new Error('API error');
+                return response.json();
+            })
             .then(function(data) {
                 var artists = data.artists || data || [];
+                if (artists.length === 0) return;
+                
                 artists.forEach(function(artist) {
                     if (artist.latitude && artist.longitude) {
-                        var icon = L.divIcon({
-                            className: 'custom-marker',
-                            html: '<div style="background: linear-gradient(135deg, #6B21A8, #2563EB); width: 36px; height: 36px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.4);"><i class="bi bi-brush" style="font-size: 16px;"></i></div>',
-                            iconSize: [36, 36],
-                            iconAnchor: [18, 36],
-                            popupAnchor: [0, -36]
-                        });
-                        L.marker([artist.latitude, artist.longitude], {icon: icon})
-                            .addTo(map)
-                            .bindPopup('<b style="color: #6B21A8;">' + artist.name + '</b><br>' + artist.city);
+                        try {
+                            var icon = L.divIcon({
+                                className: 'custom-marker',
+                                html: '<div style="background: linear-gradient(135deg, #6B21A8, #2563EB); width: 36px; height: 36px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.4);"><i class="bi bi-brush" style="font-size: 16px;"></i></div>',
+                                iconSize: [36, 36],
+                                iconAnchor: [18, 36],
+                                popupAnchor: [0, -36]
+                            });
+                            L.marker([artist.latitude, artist.longitude], {icon: icon})
+                                .addTo(map)
+                                .bindPopup('<b style="color: #6B21A8;">' + artist.name + '</b><br>' + artist.city);
+                        } catch(e) {
+                            console.error('Marker error:', e);
+                        }
                     }
                 });
             })
-            .catch(function() {
-                console.error('Failed to load artists');
+            .catch(function(err) {
+                console.error('Failed to load artists:', err);
             });
     }
 
@@ -107,7 +128,9 @@
                     statusEl.innerHTML = '<span style="color: #4ade80;"><i class="bi bi-geo-alt-fill"></i> Lokasi real-time aktif</span>';
                 }
                 
-                map.setView([lat, lng], 14);
+                if (map) {
+                    map.setView([lat, lng], 14);
+                }
                 
                 if (userMarker) {
                     userMarker.setLatLng([lat, lng]);
@@ -126,7 +149,11 @@
             }, function(error) {
                 var statusEl = document.getElementById('locationStatus');
                 if (statusEl) {
-                    statusEl.innerHTML = '<span style="color: #f87171;"><i class="bi bi-x-circle"></i> Gagal: ' + error.message + '</span>';
+                    var msg = 'Gagal mendapatkan lokasi';
+                    if (error.code === 1) msg = 'Izin lokasi ditolak';
+                    else if (error.code === 2) msg = 'Lokasi tidak tersedia';
+                    else if (error.code === 3) msg = 'Waktu tunggu habis';
+                    statusEl.innerHTML = '<span style="color: #f87171;"><i class="bi bi-x-circle"></i> ' + msg + '</span>';
                 }
             }, {
                 enableHighAccuracy: true,

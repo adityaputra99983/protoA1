@@ -1,190 +1,149 @@
 (function() {
     var map;
-    var userMarker;
-    var watchId = null;
-    var currentSlide = 0;
-
-    function initCarousel() {
-        var slides = document.querySelectorAll('.promo-slide');
-        var dots = document.querySelectorAll('.promo-dot');
-        
-        if (slides.length === 0) return;
-        
-        window.changeSlide = function(index) {
-            if (index < 0 || index >= slides.length) return;
-            slides.forEach(function(s) { s.classList.remove('active'); });
-            dots.forEach(function(d) { d.classList.remove('active'); });
-            slides[index].classList.add('active');
-            dots[index].classList.add('active');
-            currentSlide = index;
-        };
-        
-        dots.forEach(function(dot) {
-            dot.style.cursor = 'pointer';
-            dot.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                var slideIndex = parseInt(this.getAttribute('data-slide'), 10);
-                if (!isNaN(slideIndex)) {
-                    window.changeSlide(slideIndex);
-                }
-            });
-        });
-        
-        if (slides.length > 1) {
-            setInterval(function() {
-                currentSlide = (currentSlide + 1) % slides.length;
-                window.changeSlide(currentSlide);
-            }, 3000);
-        }
-    }
-
-    function initCategoryChips() {
-        document.querySelectorAll('.category-chip').forEach(function(chip) {
-            chip.style.cursor = 'pointer';
-            chip.addEventListener('click', function() {
-                document.querySelectorAll('.category-chip').forEach(function(c) {
-                    c.classList.remove('active');
-                });
-                this.classList.add('active');
-            });
-        });
-    }
+    var userMarker = null;
 
     function initMap() {
         var mapEl = document.getElementById('map');
-        if (!mapEl) return;
-        
-        try {
-            map = L.map('map', {
-                zoomControl: true,
-                attributionControl: true
-            }).setView([-2.5, 118], 5);
-            
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(map);
-            
-            loadArtistsMarkers();
-            startLocationWatch();
-        } catch(e) {
-            console.error('Map init error:', e);
-            var statusEl = document.getElementById('locationStatus');
-            if (statusEl) {
-                statusEl.innerHTML = '<span style="color: #f87171;"><i class="bi bi-x-circle"></i> Gagal load地图</span>';
-            }
+        if (!mapEl) {
+            console.log('Map element not found');
+            return;
         }
+        
+        // Check Leaflet
+        if (typeof L === 'undefined') {
+            console.error('Leaflet not loaded');
+            document.getElementById('locationStatus').innerHTML = '<span style="color:#f87171;">Map library gagal load</span>';
+            return;
+        }
+        
+        // Create map
+        map = L.map('map', {
+            zoomControl: true,
+            attributionControl: true
+        }).setView([-2.5, 118], 5);
+        
+        // Add tiles
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+        
+        console.log('Map initialized');
+        
+        // Load from API
+        loadArtistsFromAPI();
+        
+        // Get user location
+        getUserLocation();
     }
 
-    function loadArtistsMarkers() {
+    function loadArtistsFromAPI() {
         fetch('/api/artists/')
             .then(function(response) {
-                if (!response.ok) throw new Error('API error');
                 return response.json();
             })
-            .then(function(data) {
-                var artists = data.artists || data || [];
-                if (artists.length === 0) return;
-                
-                artists.forEach(function(artist) {
-                    if (artist.latitude && artist.longitude) {
-                        try {
-                            var icon = L.divIcon({
-                                className: 'custom-marker',
-                                html: '<div style="background: linear-gradient(135deg, #6B21A8, #2563EB); width: 36px; height: 36px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.4);"><i class="bi bi-brush" style="font-size: 16px;"></i></div>',
-                                iconSize: [36, 36],
-                                iconAnchor: [18, 36],
-                                popupAnchor: [0, -36]
-                            });
-                            L.marker([artist.latitude, artist.longitude], {icon: icon})
-                                .addTo(map)
-                                .bindPopup('<b style="color: #6B21A8;">' + artist.name + '</b><br>' + artist.city);
-                        } catch(e) {
-                            console.error('Marker error:', e);
-                        }
-                    }
-                });
+            .then(function(result) {
+                console.log('API Response:', result);
+                var artists = result.artists || [];
+                displayArtists(artists);
             })
             .catch(function(err) {
-                console.error('Failed to load artists:', err);
+                console.error('API Error:', err);
+                // Try embedded data
+                var embeddedEl = document.getElementById('embedded-artists');
+                if (embeddedEl) {
+                    try {
+                        var artists = JSON.parse(embeddedEl.textContent);
+                        displayArtists(artists);
+                    } catch(e) {}
+                }
             });
     }
 
-    function startLocationWatch() {
-        var statusEl = document.getElementById('locationStatus');
-        if (statusEl) {
-            statusEl.innerHTML = '<span class="loading-spinner" style="width:16px;height:16px;border-width:2px;"></span> Mencari lokasi...';
+    function displayArtists(artists) {
+        if (!map || !artists || artists.length === 0) {
+            console.log('No artists to display');
+            document.getElementById('locationStatus').innerHTML = '<span style="color:#f87171;">Tidak ada data seniman</span>';
+            return;
         }
         
-        if (navigator.geolocation) {
-            watchId = navigator.geolocation.watchPosition(function(position) {
+        console.log('Displaying', artists.length, 'artists');
+        
+        var bounds = [];
+        
+        artists.forEach(function(artist) {
+            var lat = parseFloat(artist.latitude);
+            var lng = parseFloat(artist.longitude);
+            
+            if (isNaN(lat) || isNaN(lng)) return;
+            
+            bounds.push([lat, lng]);
+            
+            // Create marker icon
+            var icon = L.divIcon({
+                html: '<div style="background:linear-gradient(135deg,#6B21A8,#2563EB);width:40px;height:40px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;box-shadow:0 4px 10px rgba(0,0,0,0.4);">✒️</div>',
+                className: '',
+                iconSize: [40, 40],
+                iconAnchor: [20, 40]
+            });
+            
+            L.marker([lat, lng], {icon: icon})
+                .addTo(map)
+                .bindPopup('<b style="color:#6B21A8;">' + (artist.name || 'Artist') + '</b><br><span style="color:#666;">' + (artist.city || '') + '</span>');
+        });
+        
+        if (bounds.length > 0) {
+            map.fitBounds(bounds, {padding: [50, 50]});
+        }
+        
+        console.log('Displayed', artists.length, 'markers');
+    }
+
+    function getUserLocation() {
+        if (!navigator.geolocation) {
+            console.log('Geolocation not supported');
+            return;
+        }
+        
+        document.getElementById('locationStatus').innerHTML = '<span style="color:#fbbf24;">🔄 Mencari lokasi...</span>';
+        
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
                 var lat = position.coords.latitude;
                 var lng = position.coords.longitude;
-                var accuracy = position.coords.accuracy;
+                console.log('User location:', lat, lng);
                 
-                var statusEl = document.getElementById('locationStatus');
-                if (statusEl) {
-                    statusEl.innerHTML = '<span style="color: #4ade80;"><i class="bi bi-geo-alt-fill"></i> Lokasi real-time aktif</span>';
-                }
+                // User marker
+                var userIcon = L.divIcon({
+                    html: '<div style="background:#3B82F6;width:28px;height:28px;border-radius:50%;border:4px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,0.5);"></div>',
+                    className: '',
+                    iconSize: [28, 28],
+                    iconAnchor: [14, 14]
+                });
                 
-                if (map) {
-                    map.setView([lat, lng], 14);
-                }
+                userMarker = L.marker([lat, lng], {icon: userIcon})
+                    .addTo(map)
+                    .bindPopup('<b style="color:#3B82F6;">📍 Lokasi Anda</b>')
+                    .openPopup();
                 
-                if (userMarker) {
-                    userMarker.setLatLng([lat, lng]);
-                } else {
-                    var userIcon = L.divIcon({
-                        className: 'user-marker',
-                        html: '<div style="background: #3B82F6; width: 24px; height: 24px; border-radius: 50%; border: 4px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.4);"></div>',
-                        iconSize: [24, 24],
-                        iconAnchor: [12, 12]
-                    });
-                    userMarker = L.marker([lat, lng], {icon: userIcon})
-                        .addTo(map)
-                        .bindPopup('<b style="color: #3B82F6;">Lokasi Anda</b><br>Akurasi: ' + Math.round(accuracy) + 'm')
-                        .openPopup();
-                }
-            }, function(error) {
-                var statusEl = document.getElementById('locationStatus');
-                if (statusEl) {
-                    var msg = 'Gagal mendapatkan lokasi';
-                    if (error.code === 1) msg = 'Izin lokasi ditolak';
-                    else if (error.code === 2) msg = 'Lokasi tidak tersedia';
-                    else if (error.code === 3) msg = 'Waktu tunggu habis';
-                    statusEl.innerHTML = '<span style="color: #f87171;"><i class="bi bi-x-circle"></i> ' + msg + '</span>';
-                }
-            }, {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0
-            });
-        } else {
-            var statusEl = document.getElementById('locationStatus');
-            if (statusEl) {
-                statusEl.innerHTML = '<span style="color: #f87171;"><i class="bi bi-x-circle"></i> Geolocation tidak didukung</span>';
-            }
-        }
+                // Center on user
+                map.setView([lat, lng], 12);
+                
+                document.getElementById('locationStatus').innerHTML = 
+                    '<span style="color:#4ade80;">● Lokasi real-time aktif</span>';
+                
+            },
+            function(error) {
+                var msg = 'Lokasi tidak tersedia';
+                if (error.code === 1) msg = 'Izin lokasi ditolak';
+                document.getElementById('locationStatus').innerHTML = 
+                    '<span style="color:#f87171;">● ' + msg + '</span>';
+            },
+            { enableHighAccuracy: true, timeout: 15000 }
+        );
     }
 
-    function stopLocationWatch() {
-        if (watchId !== null) {
-            navigator.geolocation.clearWatch(watchId);
-            watchId = null;
-        }
-    }
-
-    function requestLocation() {
-        startLocationWatch();
-    }
-
-    window.HomeMap = {
-        initMap: initMap,
-        requestLocation: requestLocation,
-        startLocationWatch: startLocationWatch,
-        stopLocationWatch: stopLocationWatch
-    };
-
-    document.addEventListener('DOMContentLoaded', initMap);
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(initMap, 300);
+    });
 })();

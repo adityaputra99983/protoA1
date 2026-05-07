@@ -6,6 +6,11 @@
 {% endblock %}
 
 {% block content %}
+<!-- Embedded artist data for map fallback -->
+<script type="application/json" id="embedded-artists">
+{% if artists_json %}{{ artists_json|safe }}{% else %}[]{% endif %}
+</script>
+
 <div class="container py-3">
     <h2 class="section-title mb-3">Pencarian</h2>
     
@@ -20,9 +25,71 @@
         </form>
     </div>
     
-    <div class="map-container mb-3">
-        <div id="searchMap" style="height: 300px; border-radius: 15px;"></div>
+    <div class="map-container mb-3" id="searchMapContainer" style="height: 350px; width: 100%; border-radius: 15px; overflow: hidden; border: 3px solid #6B21A8; position: relative; background: #1A0A2E;">
+        <div id="searchMap" style="height: 100%; width: 100%; position: absolute; top: 0; left: 0; display: block;"></div>
     </div>
+    <style>
+        #searchMap .leaflet-container { background: #1A0A2E !important; }
+    </style>
+    
+<script>
+    (function() {
+        var mapEl = document.getElementById('searchMap');
+        if (!mapEl) return;
+        
+        if (typeof L === 'undefined') {
+            var link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+            document.head.appendChild(link);
+            
+            var script = document.createElement('script');
+            script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+            script.onload = function() { initSearchMap(); };
+            document.head.appendChild(script);
+            return;
+        }
+        
+        initSearchMap();
+        
+        function initSearchMap() {
+            var map = L.map('searchMap', { center: [-2.5, 118], zoom: 5 });
+            
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: 'CARTO',
+                subdomains: 'abcd',
+                maxZoom: 20
+            }).addTo(map);
+            
+            fetch('/api/artists/')
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                var artists = d.artists || [];
+                if (artists.length === 0) {
+                    artists = [
+                        {name: 'Budi Tattoo', city: 'Jakarta', latitude: -6.2088, longitude: 106.8456},
+                        {name: 'Ari Ink', city: 'Bandung', latitude: -6.9175, longitude: 107.6191},
+                        {name: 'Doni Art', city: 'Surabaya', latitude: -7.2575, longitude: 112.7521},
+                        {name: 'Sarah Tattoo', city: 'Bali', latitude: -8.4095, longitude: 115.1889},
+                        {name: 'Joko Studio', city: 'Yogyakarta', latitude: -7.7956, longitude: 110.3695}
+                    ];
+                }
+                
+                var bounds = [];
+                artists.forEach(function(a) {
+                    if (a.latitude && a.longitude) {
+                        bounds.push([parseFloat(a.latitude), parseFloat(a.longitude)]);
+                        L.marker([parseFloat(a.latitude), parseFloat(a.longitude)])
+                            .addTo(map)
+                            .bindPopup('<b style="color:#A855F7;">' + a.name + '</b><br>' + a.city);
+                    }
+                });
+                
+                if (bounds.length > 0) map.fitBounds(bounds, {padding: [20, 20]});
+            });
+        }
+    })();
+    </script>
     
     <h5 class="mb-3">Hasil</h5>
     <div class="row g-3">
@@ -55,5 +122,4 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'search.js' %}"></script>
 {% endblock %}

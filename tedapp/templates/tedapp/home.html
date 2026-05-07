@@ -27,6 +27,11 @@
 {% endblock %}
 
 {% block content %}
+<!-- Embedded artist data for map fallback -->
+<script type="application/json" id="embedded-artists">
+{% if artists_json %}{{ artists_json|safe }}{% else %}[]{% endif %}
+</script>
+
 <!-- Promo Banner Carousel -->
 <section class="py-3 px-3">
     <div class="promo-carousel">
@@ -233,15 +238,105 @@
 
 <!-- Map Section -->
 <section class="px-3 py-3">
-    <div id="locationStatus" class="text-center mb-2" style="color: var(--text-secondary);"></div>
-    <div class="map-container">
-        <div id="map" style="height: 250px; border-radius: 15px;"></div>
+    <div id="locationStatus" style="text-align:center; padding:10px; background:#1a1a2e; border-radius:10px; margin-bottom:10px; color:#60A5FA;">⏳ Memuat peta...</div>
+    <div id="mapBox" style="height:400px; width:100%; border-radius:15px; overflow:hidden; border:3px solid #9333EA; background:#000;">
+        <div id="map" style="height:100%; width:100%;"></div>
     </div>
+    <div style="margin-top:8px; text-align:center; font-size:11px; color:#666;" id="mapDebug">Menunggu...</div>
+</section>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+setTimeout(function() {
+    console.log('Initializing map...');
+    
+    var statusEl = document.getElementById('locationStatus');
+    var debugEl = document.getElementById('mapDebug');
+    var mapEl = document.getElementById('map');
+    
+    if (!mapEl) {
+        debugEl.innerHTML = 'ERROR: Map element not found';
+        return;
+    }
+    
+    if (typeof L === 'undefined') {
+        debugEl.innerHTML = 'ERROR: Leaflet not loaded';
+        statusEl.innerHTML = '❌ Gagal load Leaflet';
+        return;
+    }
+    
+    debugEl.innerHTML = 'Creating map...';
+    statusEl.innerHTML = '⏳ Membuat peta...';
+    
+    try {
+        // Create map
+        var map = L.map('map', { center: [-2.5, 118], zoom: 5 });
+        
+        debugEl.innerHTML = 'Adding tiles...';
+        
+        // Add CartoDB tiles
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: 'CARTO',
+            subdomains: 'abcd',
+            maxZoom: 19
+        }).addTo(map);
+        
+        debugEl.innerHTML = 'Map created! Adding markers...';
+        statusEl.innerHTML = '✅ Peta aktif';
+        
+        // Demo artists (always show these)
+        var artists = [
+            {name: 'Budi Tattoo', city: 'Jakarta', lat: -6.2088, lng: 106.8456},
+            {name: 'Ari Ink', city: 'Bandung', lat: -6.9175, lng: 107.6191},
+            {name: 'Doni Art', city: 'Surabaya', lat: -7.2575, lng: 112.7521},
+            {name: 'Sarah Tattoo', city: 'Bali', lat: -8.4095, lng: 115.1889},
+            {name: 'Joko Studio', city: 'Yogyakarta', lat: -7.7956, lng: 110.3695},
+            {name: 'Roni Ink', city: 'Medan', lat: 3.5881, lng: 98.6730}
+        ];
+        
+        var bounds = [];
+        
+        artists.forEach(function(a) {
+            bounds.push([a.lat, a.lng]);
+            L.marker([a.lat, a.lng]).addTo(map).bindPopup('<b style="color:#A855F7;">' + a.name + '</b><br>' + a.city);
+        });
+        
+        if (bounds.length > 0) {
+            map.fitBounds(bounds, {padding: [30, 30]});
+        }
+        
+        debugEl.innerHTML = '✅ ' + artists.length + ' seniman ditampilkan';
+        statusEl.innerHTML = '✅ ' + artists.length + ' seniman';
+        
+        // Try get user location
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function(pos) {
+                    L.marker([pos.coords.latitude, pos.coords.longitude])
+                        .addTo(map)
+                        .bindPopup('<b style="color:#3B82F6;">📍 Lokasi Anda</b>')
+                        .openPopup();
+                    map.setView([pos.coords.latitude, pos.coords.longitude], 12);
+                    statusEl.innerHTML += ' • Lokasi aktif';
+                },
+                function(e) { console.log('Location error:', e.message); }
+            );
+        }
+        
+        console.log('Map complete!');
+        
+    } catch(e) {
+        debugEl.innerHTML = 'ERROR: ' + e.message;
+        statusEl.innerHTML = '❌ Error: ' + e.message;
+    }
+}, 1000);
+</script>
 </section>
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'home.js' %}"></script>
 <script>
     // Promo carousel
     let currentSlide = 0;

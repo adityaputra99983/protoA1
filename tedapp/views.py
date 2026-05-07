@@ -26,9 +26,27 @@ def home(request):
         ).exclude(
             status__in=['completed', 'cancelled']
         )[:3]
+    
+    # Prepare artists JSON for map fallback
+    all_artists = Artist.objects.filter(is_active=True)
+    artists_data = []
+    for a in all_artists:
+        lat_val = a.current_latitude if a.current_latitude else a.latitude
+        lng_val = a.current_longitude if a.current_longitude else a.longitude
+        if lat_val and lng_val:
+            artists_data.append({
+                'id': a.id,
+                'name': a.name,
+                'city': a.city,
+                'specializations': a.specializations,
+                'latitude': float(lat_val),
+                'longitude': float(lng_val),
+            })
+    
     context = {
         'featured_artists': featured_artists,
         'active_orders': active_orders,
+        'artists_json': json.dumps(artists_data),
     }
     return render(request, 'tedapp/home.html', context)
 
@@ -412,11 +430,28 @@ def search_artists(request):
         for artist in artists_list:
             artist.distance_to_user_val = artist.distance_to_user(Decimal(lat), Decimal(lng))
     
+    # Prepare artists JSON for map fallback
+    all_artists = Artist.objects.filter(is_active=True)
+    artists_data = []
+    for a in all_artists:
+        lat_val = a.current_latitude if a.current_latitude else a.latitude
+        lng_val = a.current_longitude if a.current_longitude else a.longitude
+        if lat_val and lng_val:
+            artists_data.append({
+                'id': a.id,
+                'name': a.name,
+                'city': a.city,
+                'specializations': a.specializations,
+                'latitude': float(lat_val),
+                'longitude': float(lng_val),
+            })
+    
     context = {
         'artists': artists_list,
         'query': query,
         'user_lat': lat,
         'user_lng': lng,
+        'artists_json': json.dumps(artists_data),
     }
     return render(request, 'tedapp/search.html', context)
 
@@ -607,76 +642,105 @@ def notifications(request):
 def api_nearby_artists(request):
     lat = request.GET.get('lat')
     lng = request.GET.get('lng')
-    radius = float(request.GET.get('radius', 20))
+    radius = float(request.GET.get('radius', 50))
     
-    artists = Artist.objects.filter(is_active=True, is_online=True)
+    # Get all active artists (not just online ones)
+    artists = Artist.objects.filter(is_active=True)
+    
+    # Fallback demo artists if no real data (for Vercel demo)
+    demo_artists = [
+        {'id': 1, 'name': 'Budi Tattoo Artist', 'nickname': 'Budi', 'city': 'Jakarta', 'address': 'Jakarta Pusat', 'latitude': -6.2088, 'longitude': 106.8456, 'specializations': 'Tribal, Blackwork', 'rating': 4.8, 'total_reviews': 120, 'is_online': True, 'is_available_home': True, 'is_available_studio': True, 'home_service_fee': 150000, 'description': 'Seniman tattoo profesional dengan pengalaman 5 tahun', 'experience_years': 5},
+        {'id': 2, 'name': 'Ari Ink Studio', 'nickname': 'Ari', 'city': 'Bandung', 'address': 'Bandung', 'latitude': -6.9175, 'longitude': 107.6191, 'specializations': 'Realism, Portrait', 'rating': 4.9, 'total_reviews': 85, 'is_online': True, 'is_available_home': False, 'is_available_studio': True, 'home_service_fee': 0, 'description': 'Spesialis realism dan portrait', 'experience_years': 7},
+        {'id': 3, 'name': 'Doni Art Design', 'nickname': 'Doni', 'city': 'Surabaya', 'address': 'Surabaya', 'latitude': -7.2575, 'longitude': 112.7521, 'specializations': 'Neo Traditional', 'rating': 4.7, 'total_reviews': 95, 'is_online': True, 'is_available_home': True, 'is_available_studio': True, 'home_service_fee': 200000, 'description': 'Neo traditional style expert', 'experience_years': 4},
+        {'id': 4, 'name': 'Sarah Ink Art', 'nickname': 'Sarah', 'city': 'Bali', 'address': 'Denpasar, Bali', 'latitude': -8.4095, 'longitude': 115.1889, 'specializations': 'Watercolor, Floral', 'rating': 4.9, 'total_reviews': 150, 'is_online': True, 'is_available_home': True, 'is_available_studio': True, 'home_service_fee': 180000, 'description': 'Spesialis watercolor dan tattoo floral', 'experience_years': 6},
+        {'id': 5, 'name': 'Joko Traditional', 'nickname': 'Joko', 'city': 'Yogyakarta', 'address': 'Yogyakarta', 'latitude': -7.7956, 'longitude': 110.3695, 'specializations': 'Traditional, Japanese', 'rating': 4.6, 'total_reviews': 70, 'is_online': True, 'is_available_home': True, 'is_available_studio': False, 'home_service_fee': 120000, 'description': 'Traditional dan Japanese style', 'experience_years': 8},
+        {'id': 6, 'name': 'Roni Blackwork', 'nickname': 'Roni', 'city': 'Medan', 'address': 'Medan', 'latitude': 3.5881, 'longitude': 98.6730, 'specializations': 'Blackwork, Geometric', 'rating': 4.5, 'total_reviews': 45, 'is_online': False, 'is_available_home': True, 'is_available_studio': True, 'home_service_fee': 100000, 'description': 'Blackwork dan geometric specialist', 'experience_years': 3},
+        {'id': 7, 'name': 'Toni Color Ink', 'nickname': 'Toni', 'city': 'Makassar', 'address': 'Makassar', 'latitude': -5.1428, 'longitude': 119.4126, 'specializations': 'Color, Neo Classic', 'rating': 4.8, 'total_reviews': 60, 'is_online': True, 'is_available_home': True, 'is_available_studio': True, 'home_service_fee': 160000, 'description': 'Warna-warna dan neo classic', 'experience_years': 5},
+    ]
+    
+    if not artists.exists():
+        return JsonResponse({'artists': demo_artists, 'message': 'Demo artists (no database)'}, safe=False)
     
     if lat and lng:
         nearby = []
         for artist in artists:
-            if artist.current_latitude and artist.current_longitude:
+            lat_val = artist.current_latitude if artist.current_latitude else artist.latitude
+            lng_val = artist.current_longitude if artist.current_longitude else artist.longitude
+            
+            if lat_val and lng_val:
                 dist = artist.distance_to_user(Decimal(lat), Decimal(lng))
-                if dist and dist <= radius:
-                    nearby.append({
-                        'id': artist.id,
-                        'name': artist.name,
-                        'nickname': artist.nickname,
-                        'photo': artist.photo.url if artist.photo else None,
-                        'phone': artist.phone,
-                        'email': artist.email,
-                        'address': artist.address,
-                        'city': artist.city,
-                        'latitude': float(artist.current_latitude) if artist.current_latitude else float(artist.latitude),
-                        'longitude': float(artist.current_longitude) if artist.current_longitude else float(artist.longitude),
-                        'has_location': artist.has_location,
-                        'location_status': artist.location_status,
-                        'specializations': artist.specializations,
-                        'description': artist.description,
-                        'experience_years': artist.experience_years,
-                        'rating': float(artist.rating),
-                        'total_reviews': artist.total_reviews,
-                        'distance_km': round(dist, 1),
-                        'is_available_home': artist.is_available_home,
-                        'is_available_studio': artist.is_available_studio,
-                        'home_service_fee': int(artist.home_service_fee),
-                        'studio_name': artist.studio_name,
-                        'studio_address': artist.studio_address,
-                        'service_radius_km': float(artist.service_radius_km),
-                        'is_verified': artist.is_verified,
-                        'is_online': artist.is_online,
-                    })
+                nearby.append({
+                    'id': artist.id,
+                    'name': artist.name,
+                    'nickname': artist.nickname,
+                    'photo': request.build_absolute_uri(artist.photo.url) if artist.photo else None,
+                    'phone': artist.phone,
+                    'email': artist.email,
+                    'address': artist.address,
+                    'city': artist.city,
+                    'latitude': float(lat_val) if lat_val else None,
+                    'longitude': float(lng_val) if lng_val else None,
+                    'has_location': artist.has_location,
+                    'location_status': artist.location_status,
+                    'specializations': artist.specializations,
+                    'description': artist.description,
+                    'experience_years': artist.experience_years,
+                    'rating': float(artist.rating) if artist.rating else 0,
+                    'total_reviews': int(artist.total_reviews) if artist.total_reviews else 0,
+                    'distance_km': round(dist, 1) if dist else None,
+                    'is_available_home': artist.is_available_home,
+                    'is_available_studio': artist.is_available_studio,
+                    'home_service_fee': int(artist.home_service_fee) if artist.home_service_fee else 0,
+                    'studio_name': artist.studio_name or '',
+                    'studio_address': artist.studio_address or '',
+                    'service_radius_km': float(artist.service_radius_km) if artist.service_radius_km else 20,
+                    'is_verified': artist.is_verified,
+                    'is_online': artist.is_online,
+                })
         
-        nearby.sort(key=lambda x: x['distance_km'])
+        # Sort by distance
+        nearby.sort(key=lambda x: x['distance_km'] if x['distance_km'] else 9999)
         return JsonResponse({'artists': nearby}, safe=False)
     else:
-        data = [{
-            'id': a.id,
-            'name': a.name,
-            'nickname': a.nickname,
-            'photo': a.photo.url if a.photo else None,
-            'phone': a.phone,
-            'email': a.email,
-            'address': a.address,
-            'city': a.city,
-            'latitude': float(a.latitude) if a.latitude else None,
-            'longitude': float(a.longitude) if a.longitude else None,
-            'has_location': a.has_location,
-            'location_status': a.location_status,
-            'specializations': a.specializations,
-            'description': a.description,
-            'experience_years': a.experience_years,
-            'rating': float(a.rating),
-            'total_reviews': a.total_reviews,
-            'distance_km': None,
-            'is_available_home': a.is_available_home,
-            'is_available_studio': a.is_available_studio,
-            'home_service_fee': int(a.home_service_fee),
-            'studio_name': a.studio_name,
-            'studio_address': a.studio_address,
-            'service_radius_km': float(a.service_radius_km),
-            'is_verified': a.is_verified,
-            'is_online': a.is_online,
-        } for a in artists]
+        # Return all artists without distance
+        data = []
+        for a in artists:
+            lat_val = a.current_latitude if a.current_latitude else a.latitude
+            lng_val = a.current_longitude if a.current_longitude else a.longitude
+            
+            data.append({
+                'id': a.id,
+                'name': a.name,
+                'nickname': a.nickname,
+                'photo': request.build_absolute_uri(a.photo.url) if a.photo else None,
+                'phone': a.phone,
+                'email': a.email,
+                'address': a.address,
+                'city': a.city,
+                'latitude': float(lat_val) if lat_val else None,
+                'longitude': float(lng_val) if lng_val else None,
+                'has_location': a.has_location,
+                'location_status': a.location_status,
+                'specializations': a.specializations,
+                'description': a.description,
+                'experience_years': a.experience_years,
+                'rating': float(a.rating) if a.rating else 0,
+                'total_reviews': int(a.total_reviews) if a.total_reviews else 0,
+                'distance_km': None,
+                'is_available_home': a.is_available_home,
+                'is_available_studio': a.is_available_studio,
+                'home_service_fee': int(a.home_service_fee) if a.home_service_fee else 0,
+                'studio_name': a.studio_name or '',
+                'studio_address': a.studio_address or '',
+                'service_radius_km': float(a.service_radius_km) if a.service_radius_km else 20,
+                'is_verified': a.is_verified,
+                'is_online': a.is_online,
+            })
+        
+        # If no artists with location, return demo data
+        if len(data) == 0:
+            return JsonResponse({'artists': demo_artists, 'message': 'Using demo data'}, safe=False)
+        
         return JsonResponse({'artists': data}, safe=False)
 
 @csrf_exempt

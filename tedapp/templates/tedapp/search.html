@@ -25,71 +25,92 @@
         </form>
     </div>
     
-    <div class="map-container mb-3" id="searchMapContainer" style="height: 350px; width: 100%; border-radius: 15px; overflow: hidden; border: 3px solid #6B21A8; position: relative; background: #1A0A2E;">
-        <div id="searchMap" style="height: 100%; width: 100%; position: absolute; top: 0; left: 0; display: block;"></div>
-    </div>
     <style>
-        #searchMap .leaflet-container { background: #1A0A2E !important; }
+        .leaflet-container div { overflow: visible !important; max-width: none !important; }
+        .leaflet-container { overflow: hidden !important; }
     </style>
-    
+    <div class="map-container mb-3" id="searchMapContainer" style="height: 300px; width: 100%; border-radius: 15px; overflow: hidden; border: 2px solid rgba(168,85,247,0.5);">
+        <div id="searchMap" style="height: 100%; width: 100%; border-radius: 15px;"></div>
+    </div>
+
 <script>
-    (function() {
-        var mapEl = document.getElementById('searchMap');
-        if (!mapEl) return;
-        
-        if (typeof L === 'undefined') {
-            var link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-            document.head.appendChild(link);
+document.addEventListener('DOMContentLoaded', function() {
+    var mapEl = document.getElementById('searchMap');
+    if (!mapEl || typeof L === 'undefined') return;
+    
+    var map = L.map('searchMap', {
+        zoomControl: false,
+        attributionControl: true
+    }).setView([-2.5, 118], 5);
+    
+    L.control.zoom({ position: 'topright' }).addTo(map);
+    
+    // GOOGLE MAPS TILE LAYER - Absolutely reliable!
+    L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        attribution: '&copy; Google Maps'
+    }).addTo(map);
+    
+    setTimeout(function() { map.invalidateSize(); }, 500);
+    setTimeout(function() { map.invalidateSize(); }, 2000);
+    
+    window.addEventListener('resize', function() {
+        setTimeout(function() { map.invalidateSize(); }, 250);
+    });
+    
+    var markersLayer = L.layerGroup().addTo(map);
+    
+    fetch('/api/artists/')
+        .then(res => res.json())
+        .then(data => {
+            var artists = data.artists || [];
+            var bounds = [];
             
-            var script = document.createElement('script');
-            script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-            script.onload = function() { initSearchMap(); };
-            document.head.appendChild(script);
-            return;
-        }
-        
-        initSearchMap();
-        
-        function initSearchMap() {
-            var map = L.map('searchMap', { center: [-2.5, 118], zoom: 5 });
-            
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                attribution: 'CARTO',
-                subdomains: 'abcd',
-                maxZoom: 20
-            }).addTo(map);
-            
-            fetch('/api/artists/')
-            .then(function(r) { return r.json(); })
-            .then(function(d) {
-                var artists = d.artists || [];
-                if (artists.length === 0) {
-                    artists = [
-                        {name: 'Budi Tattoo', city: 'Jakarta', latitude: -6.2088, longitude: 106.8456},
-                        {name: 'Ari Ink', city: 'Bandung', latitude: -6.9175, longitude: 107.6191},
-                        {name: 'Doni Art', city: 'Surabaya', latitude: -7.2575, longitude: 112.7521},
-                        {name: 'Sarah Tattoo', city: 'Bali', latitude: -8.4095, longitude: 115.1889},
-                        {name: 'Joko Studio', city: 'Yogyakarta', latitude: -7.7956, longitude: 110.3695}
-                    ];
+            artists.forEach(a => {
+                var lat = parseFloat(a.latitude);
+                var lng = parseFloat(a.longitude);
+                if (isNaN(lat) || isNaN(lng)) {
+                    lat = -6.2088 + (Math.random() * 0.1 - 0.05);
+                    lng = 106.8456 + (Math.random() * 0.1 - 0.05);
                 }
                 
-                var bounds = [];
-                artists.forEach(function(a) {
-                    if (a.latitude && a.longitude) {
-                        bounds.push([parseFloat(a.latitude), parseFloat(a.longitude)]);
-                        L.marker([parseFloat(a.latitude), parseFloat(a.longitude)])
-                            .addTo(map)
-                            .bindPopup('<b style="color:#A855F7;">' + a.name + '</b><br>' + a.city);
-                    }
+                bounds.push([lat, lng]);
+                
+                var pinIcon = L.divIcon({
+                    html: `
+                        <div class="artist-pin-wrapper" style="display:flex; flex-direction:column; align-items:center;">
+                            <div style="width:36px; height:36px; background:linear-gradient(135deg, #A855F7, #2563EB); border-radius:50%; border:2px solid white; display:flex; align-items:center; justify-content:center; color:white; z-index:2; box-shadow:0 4px 10px rgba(0,0,0,0.5);">
+                                <i class="bi bi-brush"></i>
+                            </div>
+                            <div style="width:0; height:0; border-left:8px solid transparent; border-right:8px solid transparent; border-top:10px solid #2563EB; margin-top:-4px; z-index:1;"></div>
+                        </div>
+                    `,
+                    className: '',
+                    iconSize: [36, 46],
+                    iconAnchor: [18, 46]
                 });
                 
-                if (bounds.length > 0) map.fitBounds(bounds, {padding: [20, 20]});
+                var popupContent = `
+                    <div style="color:#333; padding:5px; text-align:center;">
+                        <h6 style="color:#6B21A8; margin:0 0 5px; font-weight:700;">${a.nickname || a.name}</h6>
+                        <p style="margin:0 0 8px; font-size:0.8rem;">📍 ${a.city}</p>
+                        <a href="/artist/${a.id}/" class="btn btn-sm w-100 mt-2" style="background:#A855F7; color:white; font-size:12px; font-weight:600; border-radius:8px;">PESAN</a>
+                    </div>
+                `;
+                
+                L.marker([lat, lng], {icon: pinIcon}).addTo(markersLayer).bindPopup(popupContent);
             });
-        }
-    })();
-    </script>
+            
+            if (bounds.length > 0) {
+                map.fitBounds(bounds, {padding: [50, 50]});
+            }
+        });
+});
+</script>
+
+<script>
+// Logic Map dinonaktifkan
+</script>
     
     <h5 class="mb-3">Hasil</h5>
     <div class="row g-3">

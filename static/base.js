@@ -52,14 +52,16 @@ function closeMobileMenu() {
         });
     });
 
+    // Force unregister Service Worker to clear cache during development
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/static/service-worker.js?v=40')
-            .then(function(reg) { 
-                console.log('SW registered', reg.scope); 
-            })
-            .catch(function(err) { 
-                console.log('SW registration failed', err); 
-            });
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for(let registration of registrations) {
+                registration.unregister();
+                console.log('SW unregistered successfully');
+            }
+        }).catch(function(err) {
+            console.log('Service Worker unregistration failed: ', err);
+        });
     }
 
     if ('Notification' in window && Notification.permission === 'default') {

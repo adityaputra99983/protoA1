@@ -644,22 +644,22 @@ def api_nearby_artists(request):
     lng = request.GET.get('lng')
     radius = float(request.GET.get('radius', 50))
     
-    # Get all active artists (not just online ones)
-    artists = Artist.objects.filter(is_active=True)
+    # Get all active artists
+    artists = list(Artist.objects.filter(is_active=True))
     
-    # Fallback demo artists if no real data (for Vercel demo)
+    # Demo artists fallback
     demo_artists = [
-        {'id': 1, 'name': 'Budi Tattoo Artist', 'nickname': 'Budi', 'city': 'Jakarta', 'address': 'Jakarta Pusat', 'latitude': -6.2088, 'longitude': 106.8456, 'specializations': 'Tribal, Blackwork', 'rating': 4.8, 'total_reviews': 120, 'is_online': True, 'is_available_home': True, 'is_available_studio': True, 'home_service_fee': 150000, 'description': 'Seniman tattoo profesional dengan pengalaman 5 tahun', 'experience_years': 5},
-        {'id': 2, 'name': 'Ari Ink Studio', 'nickname': 'Ari', 'city': 'Bandung', 'address': 'Bandung', 'latitude': -6.9175, 'longitude': 107.6191, 'specializations': 'Realism, Portrait', 'rating': 4.9, 'total_reviews': 85, 'is_online': True, 'is_available_home': False, 'is_available_studio': True, 'home_service_fee': 0, 'description': 'Spesialis realism dan portrait', 'experience_years': 7},
-        {'id': 3, 'name': 'Doni Art Design', 'nickname': 'Doni', 'city': 'Surabaya', 'address': 'Surabaya', 'latitude': -7.2575, 'longitude': 112.7521, 'specializations': 'Neo Traditional', 'rating': 4.7, 'total_reviews': 95, 'is_online': True, 'is_available_home': True, 'is_available_studio': True, 'home_service_fee': 200000, 'description': 'Neo traditional style expert', 'experience_years': 4},
-        {'id': 4, 'name': 'Sarah Ink Art', 'nickname': 'Sarah', 'city': 'Bali', 'address': 'Denpasar, Bali', 'latitude': -8.4095, 'longitude': 115.1889, 'specializations': 'Watercolor, Floral', 'rating': 4.9, 'total_reviews': 150, 'is_online': True, 'is_available_home': True, 'is_available_studio': True, 'home_service_fee': 180000, 'description': 'Spesialis watercolor dan tattoo floral', 'experience_years': 6},
-        {'id': 5, 'name': 'Joko Traditional', 'nickname': 'Joko', 'city': 'Yogyakarta', 'address': 'Yogyakarta', 'latitude': -7.7956, 'longitude': 110.3695, 'specializations': 'Traditional, Japanese', 'rating': 4.6, 'total_reviews': 70, 'is_online': True, 'is_available_home': True, 'is_available_studio': False, 'home_service_fee': 120000, 'description': 'Traditional dan Japanese style', 'experience_years': 8},
-        {'id': 6, 'name': 'Roni Blackwork', 'nickname': 'Roni', 'city': 'Medan', 'address': 'Medan', 'latitude': 3.5881, 'longitude': 98.6730, 'specializations': 'Blackwork, Geometric', 'rating': 4.5, 'total_reviews': 45, 'is_online': False, 'is_available_home': True, 'is_available_studio': True, 'home_service_fee': 100000, 'description': 'Blackwork dan geometric specialist', 'experience_years': 3},
-        {'id': 7, 'name': 'Toni Color Ink', 'nickname': 'Toni', 'city': 'Makassar', 'address': 'Makassar', 'latitude': -5.1428, 'longitude': 119.4126, 'specializations': 'Color, Neo Classic', 'rating': 4.8, 'total_reviews': 60, 'is_online': True, 'is_available_home': True, 'is_available_studio': True, 'home_service_fee': 160000, 'description': 'Warna-warna dan neo classic', 'experience_years': 5},
+        {'id': 1, 'name': 'Budi Tattoo Artist', 'nickname': 'Budi', 'city': 'Jakarta', 'address': 'Jakarta Pusat', 'latitude': -6.2088, 'longitude': 106.8456, 'specializations': 'Tribal, Blackwork', 'rating': 4.8, 'total_reviews': 120, 'is_online': True, 'is_available_home': True, 'is_available_studio': True, 'home_service_fee': 150000},
+        {'id': 2, 'name': 'Ari Ink Studio', 'nickname': 'Ari', 'city': 'Bandung', 'address': 'Bandung', 'latitude': -6.9175, 'longitude': 107.6191, 'specializations': 'Realism, Portrait', 'rating': 4.9, 'total_reviews': 85, 'is_online': True, 'is_available_home': False, 'is_available_studio': True, 'home_service_fee': 0},
+        {'id': 3, 'name': 'Doni Art Design', 'nickname': 'Doni', 'city': 'Surabaya', 'address': 'Surabaya', 'latitude': -7.2575, 'longitude': 112.7521, 'specializations': 'Neo Traditional', 'rating': 4.7, 'total_reviews': 95, 'is_online': True, 'is_available_home': True, 'is_available_studio': True, 'home_service_fee': 200000},
+        {'id': 4, 'name': 'Sarah Ink Art', 'nickname': 'Sarah', 'city': 'Bali', 'address': 'Denpasar, Bali', 'latitude': -8.4095, 'longitude': 115.1889, 'specializations': 'Watercolor, Floral', 'rating': 4.9, 'total_reviews': 150, 'is_online': True, 'is_available_home': True, 'is_available_studio': True, 'home_service_fee': 180000},
+        {'id': 5, 'name': 'Joko Traditional', 'nickname': 'Joko', 'city': 'Yogyakarta', 'address': 'Yogyakarta', 'latitude': -7.7956, 'longitude': 110.3695, 'specializations': 'Traditional, Japanese', 'rating': 4.6, 'total_reviews': 70, 'is_online': True, 'is_available_home': True, 'is_available_studio': False, 'home_service_fee': 120000},
+        {'id': 6, 'name': 'Roni Blackwork', 'nickname': 'Roni', 'city': 'Medan', 'address': 'Medan', 'latitude': 3.5881, 'longitude': 98.6730, 'specializations': 'Blackwork, Geometric', 'rating': 4.5, 'total_reviews': 45, 'is_online': False, 'is_available_home': True, 'is_available_studio': True, 'home_service_fee': 100000},
     ]
     
-    if not artists.exists():
-        return JsonResponse({'artists': demo_artists, 'message': 'Demo artists (no database)'}, safe=False)
+    # If no database artists, use demo
+    if len(artists) == 0:
+        return JsonResponse({'artists': demo_artists}, safe=False)
     
     if lat and lng:
         nearby = []

@@ -1,25 +1,46 @@
 (function() {
     document.addEventListener('DOMContentLoaded', function() {
         var mapEl = document.getElementById('artistMap');
-        var lat = parseFloat(mapEl.dataset.lat || '-2.5');
-        var lng = parseFloat(mapEl.dataset.lng || '118');
-        var name = mapEl.dataset.name || '';
-        var address = mapEl.dataset.address || '';
-        var city = mapEl.dataset.city || '';
-        var studio = mapEl.dataset.studio || '';
+        var latStr = mapEl.dataset.lat;
+        var lngStr = mapEl.dataset.lng;
+        
+        // Handle "None" from Django or empty string
+        var lat = (latStr && latStr !== 'None') ? parseFloat(latStr) : -6.2088;
+        var lng = (lngStr && lngStr !== 'None') ? parseFloat(lngStr) : 106.8456;
+        
+        if (isNaN(lat)) lat = -6.2088;
+        if (isNaN(lng)) lng = 106.8456;
 
-        var map = L.map('artistMap').setView([lat, lng], 15);
+        var map = L.map('artistMap', {
+            zoomControl: false,
+            attributionControl: true
+        }).setView([lat, lng], 15);
 
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        L.control.zoom({ position: 'topright' }).addTo(map);
+
+        // GOOGLE MAPS TILE LAYER
+        L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+            attribution: '&copy; Google Maps',
+            maxZoom: 20
         }).addTo(map);
 
+        window.addEventListener('resize', function() {
+            setTimeout(function() { map.invalidateSize(); }, 250);
+        });
+
         var icon = L.divIcon({
-            className: 'custom-marker',
-            html: '<div style="background: linear-gradient(135deg, #6B21A8, #2563EB); width: 36px; height: 36px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.4);"><i class="bi bi-brush" style="font-size: 16px;"></i></div>',
-            iconSize: [36, 36],
-            iconAnchor: [18, 36],
-            popupAnchor: [0, -36]
+            html: `
+                <div class="artist-pin-wrapper" style="display:flex; flex-direction:column; align-items:center;">
+                    <div style="width:40px; height:40px; background:linear-gradient(135deg, #A855F7, #2563EB); border-radius:50%; border:2px solid white; display:flex; align-items:center; justify-content:center; color:white; z-index:2; box-shadow:0 4px 10px rgba(0,0,0,0.5);">
+                        <i class="bi bi-brush" style="font-size: 18px;"></i>
+                    </div>
+                    <div style="width:0; height:0; border-left:10px solid transparent; border-right:10px solid transparent; border-top:12px solid #2563EB; margin-top:-5px; z-index:1;"></div>
+                </div>
+            `,
+            className: '',
+            iconSize: [40, 52],
+            iconAnchor: [20, 52],
+            popupAnchor: [0, -52]
         });
 
         var popupContent = '<b style="color: #6B21A8;">' + name + '</b>';

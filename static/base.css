@@ -47,7 +47,7 @@ body {
 }
 
 /* Prevent horizontal scroll */
-.container, .row, section, article, main, nav, header, footer, div {
+.container, .row, section, article, main, nav, header, footer {
     max-width: 100%;
     overflow-x: hidden;
 }
@@ -835,41 +835,30 @@ body {
 }
 
 .map-container {
-    border-radius: 15px !important;
+    border-radius: 15px;
     overflow: hidden;
     border: 2px solid rgba(168, 85, 247, 0.5);
-    background: #0f0f0f;
-    min-height: 300px !important;
-    position: relative !important;
-    display: block !important;
-    visibility: visible !important;
-    z-index: 1;
+    background: #1a1a2e;
+    min-height: 300px;
+    position: relative;
+    display: block;
 }
 
 #map, #searchMap, #artistMap, #trackingMap {
-    height: 350px !important;
-    width: 100% !important;
+    height: 350px;
+    width: 100%;
     border-radius: 15px;
     z-index: 1;
-    min-height: 350px !important;
-    display: block !important;
-    position: relative !important;
+    display: block;
+    position: relative;
 }
 
 .leaflet-container {
-    background: #0f0f0f !important;
+    background: #1a1a2e !important;
     width: 100% !important;
-    height: 100% !important;
 }
 
-.leaflet-pane {
-    z-index: 1 !important;
-}
-
-.leaflet-control-container .leaflet-top,
-.leaflet-control-container .leaflet-bottom {
-    z-index: 2 !important;
-}
+/* Removed redundant and breaking z-index overrides */
 
 .footer-ted {
     background: linear-gradient(90deg, var(--primary-purple-dark) 0%, var(--primary-blue-dark) 100%);

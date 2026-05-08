@@ -82,7 +82,11 @@
     <div class="card-ted p-3 mb-3">
         <h5 class="mb-3">Lokasi</h5>
         {% if artist.has_location %}
-        <div id="artistMap" style="height: 200px; border-radius: 10px;" data-lat="{% if artist.current_latitude %}{{ artist.current_latitude }}{% else %}{{ artist.latitude }}{% endif %}" data-lng="{% if artist.current_longitude %}{{ artist.current_longitude }}{% else %}{{ artist.longitude }}{% endif %}" data-name="{{ artist.name }}" data-address="{{ artist.address }}" data-city="{{ artist.city }}" data-studio="{% if artist.studio_name %}{{ artist.studio_name }} - {{ artist.studio_address }}{% endif %}"></div>
+        <style>
+            .leaflet-container div { overflow: visible !important; max-width: none !important; }
+            .leaflet-container { overflow: hidden !important; }
+        </style>
+        <div id="artistMap" style="height: 200px; border-radius: 10px; border: 2px solid rgba(168,85,247,0.5);" data-lat="{% if artist.current_latitude %}{{ artist.current_latitude }}{% else %}{{ artist.latitude }}{% endif %}" data-lng="{% if artist.current_longitude %}{{ artist.current_longitude }}{% else %}{{ artist.longitude }}{% endif %}" data-name="{{ artist.name }}" data-address="{{ artist.address }}" data-city="{{ artist.city }}" data-studio="{% if artist.studio_name %}{{ artist.studio_name }} - {{ artist.studio_address }}{% endif %}"></div>
         {% if distance %}
         <p class="mt-2 mb-0" style="color: var(--accent-purple);">
             <i class="bi bi-map"></i> {{ distance|floatformat:1 }} km dari lokasi Anda

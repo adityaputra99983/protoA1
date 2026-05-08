@@ -416,7 +416,7 @@ def search_artists(request):
     lat = request.GET.get('lat')
     lng = request.GET.get('lng')
     
-    artists_list = Artist.objects.filter(is_active=True, is_online=True)
+    artists_list = Artist.objects.filter(is_active=True)
     
     if query:
         artists_list = artists_list.filter(
